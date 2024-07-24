@@ -13,6 +13,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const handleLogin = async () => {
+    navigation.navigate('Main'); // 임시
     console.log(id);
     console.log(password);
     try {

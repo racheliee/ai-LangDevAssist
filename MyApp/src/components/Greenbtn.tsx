@@ -1,10 +1,15 @@
 import React, {useState} from 'react';
-import {SafeAreaView, StyleSheet,TouchableOpacity ,TextInput,ButtonProps, Button, Text, Alert, Touchable} from 'react-native';
+import {SafeAreaView, StyleSheet,TouchableOpacity ,TextInput,ButtonProps, Button, Text, Alert, ViewStyle} from 'react-native';
+
+// ButtonProps를 확장하여 style 속성을 추가합니다.
+interface GreenButtonProps extends ButtonProps {
+    style?: ViewStyle;
+}
 
 // 초록색 버튼에 대한 컴포넌트 정의(스타일)
-const Greenbtn : React.FC<ButtonProps> = (props) => {
+const Greenbtn : React.FC<GreenButtonProps> = (props) => {
     return (
-        <TouchableOpacity style={styles.container} onPress={props.onPress}>
+        <TouchableOpacity style={[styles.container, props.style]} onPress={props.onPress}>
             <Text style ={styles.title}>{props.title}</Text>
        </TouchableOpacity>
     );
