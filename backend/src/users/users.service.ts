@@ -78,4 +78,19 @@ export class UsersService {
       data: { refreshToken: null, refreshTokenExp: null },
     });
   }
+
+  async getAchievements(userId: string) {
+    // TODO: use prisma to get achievements using "UserAcheivement" table and "Users" and "Achievement" tables
+    return userId;
+  }
+
+  async getProgressments(userId: string) {
+    // TODO: use prisma to get progressments using "progressment" table and "Users" table
+    return userId;
+  }
+
+  async submitTest(userId: string) {
+    // TODO: use prisma to submit test using "TestResult" table
+    return userId;
+  }
 }
