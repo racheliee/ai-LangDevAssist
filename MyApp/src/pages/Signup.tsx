@@ -59,6 +59,7 @@ const Signup = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const handleSignUp = async () => {
+    navigation.navigate('Test'); //test
     console.log(form);
     try {
       const response = await axios.post('/auth/register', {
@@ -68,7 +69,7 @@ const Signup = () => {
       if(response.data === 'success'){
         Alert.alert("회원가입이 완료되었습니다.");
         setFormnull();
-        navigation.navigate('Login');
+        navigation.navigate('Test');
       }
       else{
         Alert.alert("회원가입에 실패했습니다.");
