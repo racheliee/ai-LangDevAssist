@@ -10,7 +10,7 @@ on:
     branches: ["main"]
 defaults:
   run:
-    working-directory: "backend/flaskBackend"
+    working-directory: "backend/flask"
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
