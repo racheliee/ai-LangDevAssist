@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl"]
 }
 
 datasource db {
@@ -37,7 +38,6 @@ enum TestType {
   Listening
   Speaking
 }
-
 
 model Progress {
   id        String   @id @default(cuid())
