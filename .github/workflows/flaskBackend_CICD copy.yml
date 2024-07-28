@@ -4,13 +4,13 @@ on:
   push:
     paths:
       - backend/**
-      - .github/workflows/nestjsBackend_CICD.yml
+      - .github/workflows/flaskBackend_CICD.yml
     branches: ["main"]
   pull_request:
     branches: ["main"]
 defaults:
   run:
-    working-directory: "./backend/nestjs"
+    working-directory: "./backend/flaskBackend"
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -21,10 +21,10 @@ jobs:
         run: docker login -u ${{secrets.DOCKERHUB_USERNAME}} -p ${{secrets.DOCKERHUB_PASSWORD}}
 
       - name: Build the Docker image
-        run: docker build --platform linux/amd64 -t ${{secrets.DOCKERHUB_USERNAME}}/sprout-backend:latest .
+        run: docker build --platform linux/amd64 -t ${{secrets.DOCKERHUB_USERNAME}}/sprout-ai-backend:latest .
 
       - name: push
-        run: docker push ${{secrets.DOCKERHUB_USERNAME}}/sprout-backend:latest
+        run: docker push ${{secrets.DOCKERHUB_USERNAME}}/sprout-ai-backend:latest
 
   deploy:
     needs: build-and-push
@@ -38,8 +38,8 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }} # pem 키
           # 도커 작업
           script: |
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/sprout-backend:latest
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/sprout-ai-backend:latest
             docker stop main
             docker remove main
-            docker run -d --log-driver=syslog -p 8000:8000  --network app --env-file .env  --name main ${{ secrets.DOCKERHUB_USERNAME }}/sprout-backend:latest
+            docker run -d --log-driver=syslog -p 8080:8080  --network app --env-file .env  --name ai ${{ secrets.DOCKERHUB_USERNAME }}/sprout-ai-backend:latest
             docker image prune -a -f
