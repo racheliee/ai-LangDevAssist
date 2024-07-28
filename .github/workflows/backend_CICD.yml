@@ -28,4 +28,17 @@ jobs:
       run: docker push ${{secrets.DOCKERHUB_USERNAME}}/sprout-backend:latest
       
 
+    - name: Deploy
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }} # EC2 인스턴스 퍼블릭 DNS
+        username: ec2-user
+        key: ${{ secrets.PRIVATE_KEY }} # pem 키
+        # 도커 작업
+        script: |
+          docker pull ${{ secrets.DOCKER_USERNAME }}/sprout-backend:latest
+          docker stop $(docker ps -a -q)
+          docker run -d --log-driver=syslog -p 8000:8000 ${{ secrets.DOCKER_USERNAME }}/sprout-backend:latest
+          docker rm $(docker ps --filter 'status=exited' -a -q)
+          docker image prune -a -f
       
