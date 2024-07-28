@@ -38,6 +38,10 @@ const Test = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const handleTest = async () => {
+    if(answernum >= 12)
+      navigation.navigate('TestResult_up'); // Test
+    else
+      navigation.navigate('TestResult_down'); // Test
     console.log(answernum);
     try {
       const response = await axios.post('/user/submitTest', {
@@ -46,7 +50,6 @@ const Test = () => {
       console.log(response.data);
       
       if(response.data === 'success'){
-        navigation.navigate('TestResult');
       }
       else{
         console.log("error");
@@ -59,6 +62,7 @@ const Test = () => {
   };
   
   const handleSelectItem = (index: number) => {
+    
     let updatedSelectedItems = [...selectedItems];
     if (updatedSelectedItems.includes(index)) {
       updatedSelectedItems = updatedSelectedItems.filter(item => item !== index);
@@ -92,7 +96,7 @@ const Test = () => {
           </TouchableOpacity>
         ))}
 
-        <Greenbtn title="제출"/>
+        <Greenbtn title="제출" onPress={handleTest}/>
 
       </SafeAreaView>
 
