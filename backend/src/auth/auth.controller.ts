@@ -84,14 +84,4 @@ export class AuthController {
       message: 'Successfully signed out',
     };
   }
-
-  @Get('me')
-  @UseGuards(JwtAccessAuthGuard)
-  async me(@Req() req: any) {
-    return {
-      statusCode: 200,
-      message: 'Successfully fetched user',
-      data: req.user,
-    };
-  }
 }

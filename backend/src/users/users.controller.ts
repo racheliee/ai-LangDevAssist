@@ -49,4 +49,13 @@ export class UsersController {
       throw new BadRequestException('Failed to retrieve user progress');
     }
   }
+
+  @Get('me')
+  async me(@Req() req: any) {
+    return {
+      statusCode: 200,
+      message: 'Successfully fetched user',
+      data: req.user,
+    };
+  }
 }
