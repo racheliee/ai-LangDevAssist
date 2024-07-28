@@ -1,0 +1,31 @@
+name: Docker Image CI
+
+on:
+  push:
+    paths:
+      - backend/
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+defaults:
+  run:
+    working-directory: './backend'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Login Dockerhub
+      env:
+        DOCKER_USERNAME: ${{secrets.DOCKERHUB_USERNAME}}
+        DOCKER_PASSWORD: ${{secrets.DOCKERHUB_PASSWORD}}
+      run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+    
+    - name: Build the Docker image
+      run: docker build --platform linux/amd64 -t ${{secrets.DOCKERHUB_USERNAME}}/sprout-backend:latest .
+    - name: push
+      run: docker push ${{secrets.DOCKERHUB_USERNAME}}/sprout-backend:latest
+      
+
+      
