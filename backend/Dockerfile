@@ -15,8 +15,11 @@ COPY prisma/ ./
 # Install app dependencies
 RUN npm install
 
+
 # Bundle app source
 COPY . .
+
+RUN npm run build
 
 RUN chmod +x docker-entrypoint.sh
 ENTRYPOINT [ "sh", "/usr/src/app/docker-entrypoint.sh" ]
