@@ -41,7 +41,7 @@ jobs:
           # 도커 작업
           script: |
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/sprout-ai-backend:latest
-            docker stop main
-            docker remove main
+            docker stop ai
+            docker remove ai
             docker run -d --log-driver=syslog -p 8080:8080  --network app --env-file .env  --name ai ${{ secrets.DOCKERHUB_USERNAME }}/sprout-ai-backend:latest
             docker image prune -a -f
