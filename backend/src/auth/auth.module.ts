@@ -28,5 +28,6 @@ import { JwtAccessAuthGuard } from 'common/guards/jwt-access.guard';
     JwtRefreshStrategy,
     JwtAccessAuthGuard,
   ],
+  exports: [AuthService, JwtModule],
 })
 export class AuthModule {}
