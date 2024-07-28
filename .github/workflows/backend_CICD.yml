@@ -27,6 +27,7 @@ jobs:
       run: docker push ${{secrets.DOCKERHUB_USERNAME}}/sprout-backend:latest
       
   deploy:
+    needs: build-and-push
     runs-on: ubuntu-latest
     steps:
     - name: Deploy
