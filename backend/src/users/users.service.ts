@@ -82,20 +82,20 @@ export class UsersService {
 
   async getAchievements(userId: string) {
     const userAchievements = await this.prisma.userAchievement.findMany({
-      where: {id: userId},
+      where: { id: userId },
     });
 
-    const achievementIds = userAchievements.map(ua => ua.achievementId);
+    const achievementIds = userAchievements.map((ua) => ua.achievementId);
     const achievements = await this.prisma.achievement.findMany({
-      where: {id: {in: achievementIds}},
-    })
+      where: { id: { in: achievementIds } },
+    });
 
     return achievements;
   }
 
   async getProgressments(userId: string) {
     return this.prisma.progress.findMany({
-      where: {id: userId},
+      where: { id: userId },
     });
   }
 
@@ -105,6 +105,6 @@ export class UsersService {
         userId: userId,
         result: testResultData.result,
       },
-    })
+    });
   }
 }
