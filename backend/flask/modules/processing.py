@@ -1,5 +1,3 @@
-# processing.py
-
 import google.generativeai as genai
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
