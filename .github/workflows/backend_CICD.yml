@@ -3,8 +3,7 @@ name: Docker Image CI
 on:
   push:
     paths:
-      - 'backend/**'
-    paths:
+      -'backend/**'
       -'.github/workflows/backend_CICD.yml'
     branches: [ "main" ]
   pull_request:
