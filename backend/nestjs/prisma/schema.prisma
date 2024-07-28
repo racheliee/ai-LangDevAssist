@@ -30,7 +30,6 @@ model Users {
 model TestResult {
   id        String    @id @default(cuid())
   userId    String
-  testId    String
   result    Int
   createdAt DateTime  @default(now())
 }

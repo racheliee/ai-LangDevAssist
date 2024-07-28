@@ -1,0 +1,47 @@
+name: Docker Image CI
+
+on:
+  push:
+    paths:
+      - backend/flask/**
+      - .github/workflows/flaskBackend_CICD.yml
+    branches: ["main"]
+  pull_request:
+    paths:
+      - backend/flask/**
+    branches: ["main"]
+defaults:
+  run:
+    working-directory: "backend/flask"
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Login Dockerhub
+        run: docker login -u ${{secrets.DOCKERHUB_USERNAME}} -p ${{secrets.DOCKERHUB_PASSWORD}}
+
+      - name: Build the Docker image
+        run: docker build --platform linux/amd64 -t ${{secrets.DOCKERHUB_USERNAME}}/sprout-ai-backend:latest .
+
+      - name: push
+        run: docker push ${{secrets.DOCKERHUB_USERNAME}}/sprout-ai-backend:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }} # EC2 인스턴스 퍼블릭 DNS
+          username: ec2-user
+          key: ${{ secrets.PRIVATE_KEY }} # pem 키
+          # 도커 작업
+          script: |
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/sprout-ai-backend:latest
+            docker stop ai
+            docker remove ai
+            docker run -d --log-driver=syslog -p 8080:8080  --network app --env-file .env  --name ai ${{ secrets.DOCKERHUB_USERNAME }}/sprout-ai-backend:latest
+            docker image prune -a -f

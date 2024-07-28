@@ -1,18 +1,9 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Req,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInDTO } from './dto/sign-in.dto';
 import { UsersService } from 'src/users/users.service';
 import { SignUpDTO } from './dto/sign-up.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { JwtAccessAuthGuard } from 'common/guards/jwt-access.guard';
 import { Response } from 'express';
 
 @Controller('auth')
@@ -38,11 +29,12 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const user = await this.authService.validateUser(signInDTO);
+
+    await this.usersService.update(user.id, { lastLogin: new Date() });
     const accessToken = await this.authService.generateAccessToken(user);
     const refreshToken = await this.authService.generateRefreshToken(user);
 
     await this.usersService.setCurrentRefreshToken(refreshToken, user.id);
-    await this.usersService.update(user.id, { lastLogin: new Date() });
 
     res.setHeader('Authorization', 'Bearer ' + [accessToken, refreshToken]);
     res.cookie('access_token', accessToken, { httpOnly: true });
@@ -82,16 +74,6 @@ export class AuthController {
     return {
       statusCode: 200,
       message: 'Successfully signed out',
-    };
-  }
-
-  @Get('me')
-  @UseGuards(JwtAccessAuthGuard)
-  async me(@Req() req: any) {
-    return {
-      statusCode: 200,
-      message: 'Successfully fetched user',
-      data: req.user,
     };
   }
 }
