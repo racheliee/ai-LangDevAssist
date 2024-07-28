@@ -10,6 +10,8 @@ import Profile from './src/pages/Profile';
 import Test from './src/pages/Test';
 import TestResult_up from './src/pages/TestResult_up';
 import TestResult_down from './src/pages/TestResult_down';
+import ProfileEdit from './src/pages/ProfileEdit';
+import Feedback from './src/pages/Feedback';
 
 // App.tsx 파일 내에서 스택 네비게이터의 파라미터 타입을 정의
 export type RootStackParamList = {
@@ -21,6 +23,8 @@ export type RootStackParamList = {
   Test: undefined;  
   TestResult_up: undefined;
   TestResult_down: undefined;
+  ProfileEdit: undefined;
+  Feedback: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -38,6 +42,8 @@ function App() {
         <Stack.Screen name="Test" component={Test} options={{headerShown:false}} />
         <Stack.Screen name="TestResult_up" component={TestResult_up} options={{headerShown:false}} />
         <Stack.Screen name="TestResult_down" component={TestResult_down} options={{headerShown:false}} />
+        <Stack.Screen name="ProfileEdit" component={ProfileEdit} options={{headerShown:false}} />
+        <Stack.Screen name="Feedback" component={Feedback} options={{headerShown:false}} />
       </Stack.Navigator>
     </NavigationContainer>
   );

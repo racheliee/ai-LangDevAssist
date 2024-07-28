@@ -5,13 +5,30 @@ import {useNavigation} from '@react-navigation/native';
 import {RootStackParamList} from '../../App.tsx'; 
 import {StackNavigationProp} from '@react-navigation/stack';
 
-const Profile: React.FC = () => {
+const ProfileEdit: React.FC = () => {
     
   
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
+    const [form, setForm] = useState({
+        nickname: '',
+        birth: '',
+    });
+    const setFormnull = () => {
+        setForm({
+            nickname: '',
+            birth: '',
+        });
+    }
+    const handleChange = (name: string, value: any) => {
+        setForm({
+            ...form,
+            [name]: value,
+        });
+        console.log(form);
+    }
+    const [editmode, setEditmode] = useState(false);
 
-  
 
     return (
         <View style={styles.container}>
@@ -21,11 +38,11 @@ const Profile: React.FC = () => {
                 </TouchableOpacity>
                 <View style={styles.flexitem1}/>
               
-                <TouchableOpacity onPress={() => navigation.navigate('Login')} style ={styles.flexitem}>
-                    <Text style = {styles.textlink }>로그아웃</Text>
+                <TouchableOpacity style ={styles.flexitem}>
+                    <Text style = {styles.textlink }></Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate('Feedback')}style ={styles.flexitem}>
-                    <Text style = {[styles.textlink]}>피드백</Text>
+                <TouchableOpacity onPress={() => setEditmode(true)} style ={styles.flexitem}>
+                    <Text style = {[styles.textlink]}>수정</Text>
                 </TouchableOpacity>
             </SafeAreaView>
 
@@ -34,11 +51,11 @@ const Profile: React.FC = () => {
                 <Text style = {{marginTop: 25, fontSize: 19, fontWeight: 'bold'}}>떠들이</Text>
             </SafeAreaView>
 
-            <TouchableOpacity style ={styles.profilebox} onPress={() => navigation.navigate('ProfileEdit')}>
+            <TouchableOpacity style ={styles.profilebox}>
                 <Text style = {[styles.textlink]}>내 정보</Text>         
             </TouchableOpacity>
             
-            <TouchableOpacity style ={styles.profilebox} onPress={()=> navigation.navigate('Progress')}>
+            <TouchableOpacity style ={styles.profilebox} >
                 <Text style = {[styles.textlink]}>학습 기록</Text>         
             </TouchableOpacity> 
        
@@ -113,4 +130,4 @@ const styles = StyleSheet.create({
       },
 });
 
-export default Profile;
+export default ProfileEdit;

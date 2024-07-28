@@ -29,7 +29,6 @@ const Main: React.FC = () => {
   };
 
   const stopRecording = async () => {
-    // 녹음 중지 및 파일 경로 저장 로직
     const filePath = await AudioRecorder.stopRecording();
     setOnlearn(false);
     setRecordedFile(filePath);
