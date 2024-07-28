@@ -16,14 +16,22 @@ const Profile: React.FC = () => {
     return (
         <SafeAreaView style={styles.container}>
             <SafeAreaView style={styles.header}>
-                <Text>뒤로가기</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('Main')} style ={styles.flexitem}>
+                    <Text style = {[styles.textlink]}>뒤로 가기</Text>
+                </TouchableOpacity>
+                <View style={styles.flexitem1}/>
+              
+                <TouchableOpacity onPress={() => navigation.navigate('Login')} style ={styles.flexitem}>
+                    <Text style = {styles.textlink }>로그 아웃</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('Feedback')}style ={styles.flexitem}>
+                    <Text style = {[styles.textlink]}>피드백</Text>
+                </TouchableOpacity>
             </SafeAreaView>
             <SafeAreaView style={styles.profilepic}>
                 <Text>프로필 사진</Text>
             </SafeAreaView>
-            <SafeAreaView style={styles.buttonpart}>
-                <Text>버튼</Text>
-            </SafeAreaView>
+       
             <SafeAreaView style={styles.picturepart}>
                 <Text>사진</Text>
             </SafeAreaView>
@@ -41,29 +49,47 @@ const styles = StyleSheet.create({
         
     },
     header: {
-        backgroundColor: '#1111F1',
-        flex: 1.2,
+        
+        flex: 2,
         width: '100%',
+        flexDirection: 'row',
         
-        alignItems: 'center',
-        
+        justifyContent: 'space-between',
         
     },
     profilepic: {
         
         backgroundColor: '#5222F1',
         alignItems: 'center',
-        flex:1.4,
+        flex:3.8,
     },
-    buttonpart:{
-        backgroundColor: '#1111F1',
-
-        flex: 5,
-    },
+    
     picturepart:{
         backgroundColor: '#1122F1',
-        flex: 5,
-    }
+        flex: 8,
+    },
+    textlink: {
+        marginTop: 30,
+        marginLeft: 22,
+        
+        color: '#1E1E1E',
+        fontSize: 19    ,
+        fontWeight: 'bold',
+        flex: 1,
+        
+        
+      },
+      flexitem: {
+        flex: 1 ,
+        alignItems: 'center',
+        flexDirection: 'row',
+        
+      },
+      flexitem1: {
+        flex: 0.7,
+        alignItems: 'center',
+        flexDirection: 'row',
+      },
 });
 
 export default Profile;
