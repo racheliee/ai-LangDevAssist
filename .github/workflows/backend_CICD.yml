@@ -3,7 +3,7 @@ name: Docker Image CI
 on:
   push:
     paths:
-      -'backend/**'
+      -backend/**
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
