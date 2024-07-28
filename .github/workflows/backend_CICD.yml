@@ -12,7 +12,7 @@ defaults:
   run:
     working-directory: './backend'
 jobs:
-  build:
+  build and push:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,12 +22,15 @@ jobs:
     
     - name: Build the Docker image
       run: docker build --platform linux/amd64 -t ${{secrets.DOCKERHUB_USERNAME}}/sprout-backend:latest .
+
     - name: push
       run: docker push ${{secrets.DOCKERHUB_USERNAME}}/sprout-backend:latest
       
-
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
     - name: Deploy
-      uses: appleboy/ssh-action@master
+    - uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.HOST }} # EC2 인스턴스 퍼블릭 DNS
         username: ec2-user
