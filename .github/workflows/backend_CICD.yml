@@ -4,7 +4,7 @@ on:
   push:
     paths:
       -backend/**
-      -.github/workflows/backend_CICD.yml
+      -.github/workflows/**
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
@@ -12,7 +12,7 @@ defaults:
   run:
     working-directory: './backend'
 jobs:
-  build and push:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
