@@ -7,6 +7,8 @@ on:
       - .github/workflows/flaskBackend_CICD.yml
     branches: ["main"]
   pull_request:
+    paths:
+      - backend/flask/**
     branches: ["main"]
 defaults:
   run:
