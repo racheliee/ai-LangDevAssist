@@ -3,7 +3,7 @@ name: Docker Image CI
 on:
   push:
     paths:
-      - backend/**
+      - backend/flaskBackend/**
       - .github/workflows/flaskBackend_CICD.yml
     branches: ["main"]
   pull_request:
