@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - backend/**
+      -.github/workflows/backend_CICD.yml
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
@@ -36,5 +37,5 @@ jobs:
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/sprout-backend:latest
           docker stop main
           docker remove main
-          docker run -d --log-driver=syslog -p 8000:8000  --network app --env-file .env  --name main ${{ secrets.DOCKER_USERNAME }}/sprout-backend:latest
+          docker run -d --log-driver=syslog -p 8000:8000  --network app --env-file .env  --name main ${{ secrets.DOCKERHUB_USERNAME }}/sprout-backend:latest
           docker image prune -a -f
