@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl"]
 }
 
 datasource db {
@@ -23,6 +24,7 @@ model Users {
   updatedAt       DateTime?  @updatedAt
   refreshToken    String?
   refreshTokenExp DateTime?
+  lastLogin       DateTime?
 }
 
 model TestResult {
