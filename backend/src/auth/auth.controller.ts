@@ -29,11 +29,12 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const user = await this.authService.validateUser(signInDTO);
+
+    await this.usersService.update(user.id, { lastLogin: new Date() });
     const accessToken = await this.authService.generateAccessToken(user);
     const refreshToken = await this.authService.generateRefreshToken(user);
 
     await this.usersService.setCurrentRefreshToken(refreshToken, user.id);
-    await this.usersService.update(user.id, { lastLogin: new Date() });
 
     res.setHeader('Authorization', 'Bearer ' + [accessToken, refreshToken]);
     res.cookie('access_token', accessToken, { httpOnly: true });

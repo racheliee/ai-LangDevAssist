@@ -10,6 +10,7 @@ export interface JwtPayload {
   loginId: string;
   nickname: string;
   birth: Date;
+  lastLogin: Date;
 }
 
 @Injectable()
@@ -41,6 +42,7 @@ export class AuthService {
       loginId: user.loginId,
       nickname: user.nickname,
       birth: user.birth,
+      lastLogin: user.lastLogin,
     };
     const accessToken = this.jwtService.signAsync(payload);
 
