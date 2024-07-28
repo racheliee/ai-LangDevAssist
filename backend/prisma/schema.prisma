@@ -24,6 +24,7 @@ model Users {
   updatedAt       DateTime?  @updatedAt
   refreshToken    String?
   refreshTokenExp DateTime?
+  lastLogin       DateTime?
 }
 
 model TestResult {
