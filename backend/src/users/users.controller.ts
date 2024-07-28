@@ -1,4 +1,12 @@
-import { BadRequestException, Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAccessAuthGuard } from 'common/guards/jwt-access.guard';
 import { SubmitTestDto } from './dto/submit-test.dto';
@@ -6,12 +14,12 @@ import { SubmitTestDto } from './dto/submit-test.dto';
 @Controller('users')
 @UseGuards(JwtAccessAuthGuard)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Post('submitTest')
   async submitTest(@Req() req: any, @Body() submitTestDto: SubmitTestDto) {
     const { id } = req.user;
-    
+
     try {
       return await this.usersService.submitTest(id, submitTestDto);
     } catch (error) {
