@@ -1,6 +1,6 @@
-import { IsInt, IsString } from "class-validator";
+import { IsInt } from 'class-validator';
 
 export class SubmitTestDto {
-    @IsInt()
-    result: number;
+  @IsInt()
+  result: number;
 }
