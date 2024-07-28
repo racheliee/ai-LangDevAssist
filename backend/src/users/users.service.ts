@@ -4,6 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 import { SignUpDTO } from 'src/auth/dto/sign-up.dto';
+import { SubmitTestDto } from './dto/submit-test.dto';
 
 @Injectable()
 export class UsersService {
@@ -80,17 +81,30 @@ export class UsersService {
   }
 
   async getAchievements(userId: string) {
-    // TODO: use prisma to get achievements using "UserAcheivement" table and "Users" and "Achievement" tables
-    return userId;
+    const userAchievements = await this.prisma.userAchievement.findMany({
+      where: {id: userId},
+    });
+
+    const achievementIds = userAchievements.map(ua => ua.achievementId);
+    const achievements = await this.prisma.achievement.findMany({
+      where: {id: {in: achievementIds}},
+    })
+
+    return achievements;
   }
 
   async getProgressments(userId: string) {
-    // TODO: use prisma to get progressments using "progressment" table and "Users" table
-    return userId;
+    return this.prisma.progress.findMany({
+      where: {id: userId},
+    });
   }
 
-  async submitTest(userId: string) {
-    // TODO: use prisma to submit test using "TestResult" table
-    return userId;
+  async submitTest(userId: string, testResultData: SubmitTestDto) {
+    return this.prisma.testResult.create({
+      data: {
+        userId: userId,
+        result: testResultData.result,
+      },
+    })
   }
 }

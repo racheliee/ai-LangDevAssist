@@ -1,27 +1,44 @@
-import { Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAccessAuthGuard } from 'common/guards/jwt-access.guard';
+import { SubmitTestDto } from './dto/submit-test.dto';
 
 @Controller('users')
 @UseGuards(JwtAccessAuthGuard)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Post('submitTest')
-  async submitTest(@Req() req: any) {
+  async submitTest(@Req() req: any, @Body() submitTestDto: SubmitTestDto) {
     const { id } = req.user;
-    // TODO: use try catch to handle errors
-    return this.usersService.submitTest(id);
+    
+    try {
+      return await this.usersService.submitTest(id, submitTestDto);
+    } catch (error) {
+      throw new BadRequestException('Failed to submit test');
+    }
   }
 
   // Implement following methods
   @Get('achievements')
-  async getAchievements() {
-    // return this.usersService.getAchievements();
+  async getAchievements(@Req() req: any) {
+    const { id } = req.user;
+
+    try {
+      return await this.usersService.getAchievements(id);
+    } catch (error) {
+      throw new BadRequestException('Failed to retrieve user achievements');
+    }
   }
 
   @Get('progressments')
-  async getProgressments() {
-    // return this.usersService.getProgressments();
+  async getProgressments(@Req() req: any) {
+    const { id } = req.user;
+
+    try {
+      return await this.usersService.getProgressments(id);
+    } catch (error) {
+      throw new BadRequestException('Failed to retrieve user progress');
+    }
   }
 }
