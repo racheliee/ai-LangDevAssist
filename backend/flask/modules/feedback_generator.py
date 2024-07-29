@@ -6,6 +6,7 @@ from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
+import os
 
 def load_and_split_document(file_path):
     """문서를 로드하고 텍스트를 분할합니다."""
@@ -54,7 +55,7 @@ def initialize_rag_chain(retriever, prompt, llm):
     )
     return rag_chain
 
-def analyze_audio_file(audio_path):
+def analyze_audio_file(audio_path,):
     """음성 파일을 분석합니다."""
     model = genai.GenerativeModel('models/gemini-1.5-pro-latest')
     file = genai.upload_file(path=audio_path)
@@ -66,12 +67,14 @@ def generate_rag_feedback(feedback, rag_chain):
     RAG_feedback = rag_chain.invoke(feedback)
     return RAG_feedback
 
-def start_analysis():
+def start_analysis(audio_path=None):
     '''document_path: RAG문서의 경로
     audio_path: 분석할 음성 파일의 경로
     '''
-    document_path = r".\발음교육.pdf"
-    audio_path = r'.\Test1.m4a'
+    document_path = os.path.join(os.path.dirname(__file__), "static/발음교육.pdf")
+
+    if audio_path is None:
+        audio_path = os.path.join(os.path.dirname(__file__), "static/Test1.m4a")
     
     splits = load_and_split_document(document_path)
     retriever = create_vectorstore(splits)
