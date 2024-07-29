@@ -6,10 +6,6 @@ on:
       - backend/nestjs/**
       - .github/workflows/nestjsBackend_CICD.yml
     branches: ["main"]
-  pull_request:
-    paths:
-      - backend/nestjs/**
-    branches: ["main"]
 defaults:
   run:
     working-directory: "./backend/main"
