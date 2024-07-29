@@ -14,11 +14,25 @@ def allowed_file(filename):
 def generate_problem():
     data = request.get_json()
     
-    return 'Problem Generated'
+    if data is None:
+        return jsonify({
+            "statusCode": 400,
+            "message": "Invalid request"
+        })
+    
+    problem_content = ""
+    problemId = str(uuid.uuid4())
+    problem = {
+        "id": problemId,
+        "content": problem_content
+    }
+    return jsonify({
+        "statusCode": 200,
+        "data": problem
+    })
 
 @app.route('/generate_feedback', methods=['POST'])
 def generate_feedback():
-    print(request.files)
     file = request.files['audio']
     if file.filename == '':
         return jsonify({
@@ -40,9 +54,10 @@ def generate_feedback():
     return jsonify({
         "statusCode": 200,
         "data": {
-            feedback
+            "saved_path": audio_path,
+            "feedback": feedback
         }
     })
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
+    app.run(host='0.0.0.0', port=8080, debug=True)
