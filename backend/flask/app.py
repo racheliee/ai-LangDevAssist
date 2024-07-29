@@ -34,6 +34,9 @@ def generate_problem():
 @app.route('/generate_feedback', methods=['POST'])
 def generate_feedback():
     file = request.files['audio']
+    data = request.get_json()
+    problemId = data['problemId']
+    
     if file.filename == '':
         return jsonify({
             "statusCode": 400,
@@ -46,7 +49,7 @@ def generate_feedback():
             "message":'Invalid file'
         })
     
-    audio_path = os.path.join(os.path.dirname(__file__), "static", str(uuid.uuid4()) + '.m4a')
+    audio_path = os.path.join(os.path.dirname(__file__), "static", f"{problemId}.m4a")
     file.save(audio_path)
     
     feedback = feedback_generator.start_analysis(audio_path)
