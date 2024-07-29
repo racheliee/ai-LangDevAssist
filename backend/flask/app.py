@@ -1,10 +1,14 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
+import modules.feedback_generator as feedback_generator
+import uuid
+import os
 
 app = Flask(__name__)
 
-@app.route('/')
-def hello():
-    return 'Hello Flask World'
+ALLOWED_EXTENSIONS = set(['m4a'])
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 @app.route('/generate_problem', methods=['POST'])
 def generate_problem():
@@ -14,9 +18,31 @@ def generate_problem():
 
 @app.route('/generate_feedback', methods=['POST'])
 def generate_feedback():
-    data = request.get_json()
+    print(request.files)
+    file = request.files['audio']
+    if file.filename == '':
+        return jsonify({
+            "statusCode": 400,
+            "message":'No selected file'
+        })
     
-    return 'Feedback Generated'
+    if not file or not allowed_file(file.filename):
+        return jsonify({
+            "statusCode": 400,
+            "message":'Invalid file'
+        })
+    
+    audio_path = os.path.join(os.path.dirname(__file__), "static", str(uuid.uuid4()) + '.m4a')
+    file.save(audio_path)
+    
+    feedback = feedback_generator.start_analysis(audio_path)
+    
+    return jsonify({
+        "statusCode": 200,
+        "data": {
+            feedback
+        }
+    })
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
