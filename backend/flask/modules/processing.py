@@ -6,6 +6,7 @@ from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
+import os
 
 def load_and_split_document(file_path):
     """문서를 로드하고 텍스트를 분할합니다."""
@@ -70,8 +71,8 @@ def start_analysis():
     '''document_path: RAG문서의 경로
     audio_path: 분석할 음성 파일의 경로
     '''
-    document_path = r".\발음교육.pdf"
-    audio_path = r'.\Test1.m4a'
+    document_path = os.path.join(os.path.dirname(__file__), "static/발음교육.pdf")
+    audio_path = os.path.join(os.path.dirname(__file__), "static/Test1.m4a")
     
     splits = load_and_split_document(document_path)
     retriever = create_vectorstore(splits)
