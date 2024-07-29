@@ -10,21 +10,22 @@ import {StackNavigationProp} from '@react-navigation/stack';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 const Signup = () => {
+  axios.defaults.baseURL = 'http://13.125.116.197:8000';
     const [form, setForm] = useState({
         nickname: '',
-        userId: '',
+        loginId: '',
         password: '',
-        birthDate: new Date(),
-        phoneNumber: '',
+        birth: new Date(),
+        interest: '',
         
       });
       const setFormnull = () => {
         setForm({
           nickname: '',
-          userId: '',
+          loginId: '',
           password: '',
-          birthDate: new Date(),
-          phoneNumber: '',
+          birth: new Date(),
+          interest: '',
           
         });
       };
@@ -41,7 +42,7 @@ const Signup = () => {
         const handleConfirm = (date: any) => {
             setForm({
                 ...form,
-                birthDate: date,
+                birth: date,
               });
               console.log(form);
             hideDatePicker();
@@ -59,17 +60,15 @@ const Signup = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
   const handleSignUp = async () => {
-    navigation.navigate('Test'); //test
+    //navigation.navigate('Test'); //
     console.log(form);
     try {
-      const response = await axios.post('/auth/register', {
-        form
-      });
+      const response = await axios.post('/auth/signup', form);
       console.log(response.data);
-      if(response.data === 'success'){
+      if(response.status === 201){
         Alert.alert("회원가입이 완료되었습니다.");
         setFormnull();
-        navigation.navigate('Test');
+        navigation.navigate('Login');
       }
       else{
         Alert.alert("회원가입에 실패했습니다.");
@@ -101,23 +100,31 @@ const Signup = () => {
       <SafeAreaView style={styles.inputbtn}>
         <Inputbox
           placeholder="아이디"
-          onChangeText={(value) => handleChange('userId', value)}
+          onChangeText={(value) => handleChange('loginId', value)}
+          autoCapitalize='none'
         />
         <Inputbox
           placeholder="비밀번호"
           secureTextEntry
           onChangeText={(value) => handleChange('password', value)}
+          autoCapitalize='none'
         />
         <Inputbox
           placeholder="닉네임"
           onChangeText={(value) => handleChange('nickname', value)}
+          autoCapitalize='none'
         />
+
         <Inputbox
-          placeholder="전화 번호"
-          onChangeText={(value) => handleChange('phoneNumber', value)}
-        />
+          placeholder="관심 분야"
+          onChangeText={(value) => handleChange('interest', value)}
+          autoCapitalize='none'
+        /> 
         <Inputbox
             placeholder="생년 월일"
+            value={form.birth.toDateString()}
+            underlineColorAndroid={'transparent'}
+            autoCapitalize='none'
             onTouchStart={() => setDatePickerVisibility(true)}
         />
 

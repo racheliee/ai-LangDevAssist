@@ -7,13 +7,55 @@ import {StackNavigationProp} from '@react-navigation/stack';
 import Greenbtn from '../components/Greenbtn';
 import {AudioRecorder, AudioUtils} from 'react-native-audio';
 import RNFS from 'react-native-fs';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Keychain from 'react-native-keychain';
+
+
 const Main: React.FC = () => {
+
+  axios.defaults.baseURL = 'http://13.125.116.197:8000';
+
+  // axios 인스턴스 생성
+  const apiClient = axios.create({
+    baseURL: 'http://13.125.116.197:8000',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  // 요청 인터셉터 설정
+  apiClient.interceptors.request.use(
+    async (config) => {
+      const credentials = await Keychain.getGenericPassword();
+      if (credentials) {
+        config.headers.Authorization = `Bearer ${credentials.password}`;
+      } else {
+        console.log('No credentials stored');
+      }
+      return config;
+    },
+    (error) => {
+      return Promise.reject(error);
+    }
+  );
+
     
   const [onlearn, setOnlearn] = useState(false);
   const [recordedFile, setRecordedFile] = useState('');
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  
+  const [nickname, setNickname] = useState('떠들이');
 
+  const getme = async () => {
+    const result = await apiClient.get('/users/me');
+    setNickname(result.data.data.nickname);
+    
+  }
+
+  useEffect(() => {
+    getme();
+  }, []);
 
   const startRecording = async () => {
     let audioPath = AudioUtils.DocumentDirectoryPath + '/test.m4a';
@@ -66,7 +108,7 @@ const Main: React.FC = () => {
     return (
         <SafeAreaView style={styles.container}>
             <SafeAreaView style={styles.profilebtn}>
-                <Greenbtn style={{width : 50, height:50}}title="이" onPress={() => navigation.navigate('Profile')}/>
+                <Greenbtn style={{width : 50, height:50}}title = {nickname.charAt(0)} onPress={() => navigation.navigate('Profile')}/>
             </SafeAreaView>
             <SafeAreaView style={styles.mainpage}>
 

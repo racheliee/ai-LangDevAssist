@@ -1,58 +1,95 @@
 import React, {useState, useEffect} from 'react';
-import {View, Modal, SafeAreaView, StyleSheet,Platform ,TextInput, Button, Text, Alert, Touchable, TouchableOpacity, Image,ImageBackground} from 'react-native';
+import {View, Modal, SafeAreaView, StyleSheet, Platform, TextInput, Button, Text, Alert, TouchableOpacity, Image, ImageBackground} from 'react-native';
 import axios from 'axios';
 import {useNavigation} from '@react-navigation/native'; 
 import {RootStackParamList} from '../../App.tsx'; 
 import {StackNavigationProp} from '@react-navigation/stack';
+import * as Keychain from 'react-native-keychain';
 
 const Profile: React.FC = () => {
-    
-  
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
+  axios.defaults.baseURL = 'http://13.125.116.197:8000';
 
-  
+  // axios 인스턴스 생성
+  const apiClient = axios.create({
+    baseURL: 'http://13.125.116.197:8000',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  // 요청 인터셉터 설정
+  apiClient.interceptors.request.use(
+    async (config) => {
+      const credentials = await Keychain.getGenericPassword();
+      if (credentials) {
+        config.headers.Authorization = `Bearer ${credentials.password}`;
+      }
+      return config;
+    },
+    (error) => {
+      return Promise.reject(error);
+    }
+  );
 
-    return (
-        <View style={styles.container}>
-            <SafeAreaView style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.navigate('Main')} style ={styles.flexitem}>
-                    <Text style = {[styles.textlink]}>뒤로 가기</Text>
-                </TouchableOpacity>
-                <View style={styles.flexitem1}/>
-              
-                <TouchableOpacity onPress={() => navigation.navigate('Login')} style ={styles.flexitem}>
-                    <Text style = {styles.textlink }>로그아웃</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate('Feedback')}style ={styles.flexitem}>
-                    <Text style = {[styles.textlink]}>피드백</Text>
-                </TouchableOpacity>
-            </SafeAreaView>
 
-                <SafeAreaView style={[styles.profilepic, {borderColor:'#b4b4b4', borderBottomWidth:1}]}>
-                <Image source={require('../assets/profile_1.png')} style={{width: 100, height: 100}}/>
-                <Text style = {{marginTop: 25, fontSize: 19, fontWeight: 'bold'}}>떠들이</Text>
-            </SafeAreaView>
+  const [nickname, setNickname] = useState('떠들이');
 
-            <TouchableOpacity style ={styles.profilebox} onPress={() => navigation.navigate('ProfileEdit')}>
-                <Text style = {[styles.textlink]}>내 정보</Text>         
-            </TouchableOpacity>
-            
-            <TouchableOpacity style ={styles.profilebox} onPress={()=> navigation.navigate('Progress')}>
-                <Text style = {[styles.textlink]}>학습 기록</Text>         
-            </TouchableOpacity> 
-       
-            <View style={styles.picturepart}>
-                <ImageBackground source={require('../assets/profile_land.png')} style={{width: '100%' , height:216}}>
-                    
+  const getme = async () => {
+    try {
+      const result = await apiClient.get('/users/me');
+      setNickname(result.data.data.nickname);
+      console.log('Nickname updated:', result.data);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        console.error(`Error: ${error.response.status} - ${error.response.data}`);
+      } else {
+        console.error('Unexpected error', error);
+      }
+      Alert.alert('Error', 'Failed to fetch profile data.');
+    }
+  };
+  useEffect(() => {
+    getme();
+    
+  }, []);
 
-                </ImageBackground>
-            </View>
-            
-        </View>
-    );
-
+  return (
+    <View style={styles.container}>
+      <SafeAreaView style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.navigate('Main')} style={styles.flexitem}>
+          <Text style={styles.textlink}>뒤로 가기</Text>
+        </TouchableOpacity>
+        <View style={styles.flexitem1} />
+        <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.flexitem}>
+          <Text style={styles.textlink}>로그아웃</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Feedback')} style={styles.flexitem}>
+          <Text style={styles.textlink}>피드백</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+      <SafeAreaView style={[styles.profilepic, { borderColor: '#b4b4b4', borderBottomWidth: 1 }]}>
+        <Image source={require('../assets/profile_1.png')} style={{ width: 100, height: 100 }} />
+        <Text style={{ marginTop: 25, fontSize: 19, fontWeight: 'bold' }}>{nickname}</Text>
+      </SafeAreaView>
+      <TouchableOpacity style={styles.profilebox} onPress={() => navigation.navigate('ProfileEdit')}>
+        <Text style={styles.textlink}>내 정보</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.profilebox} onPress={() => navigation.navigate('Progress')}>
+        <Text style={styles.textlink}>학습 기록</Text>
+      </TouchableOpacity>
+      <View style={styles.picturepart}>
+        <ImageBackground source={require('../assets/profile_land.png')} style={{ width: '100%', height: 216 }}>
+        </ImageBackground>
+      </View>
+    </View>
+  );
 };
+
+// 스타일 정의 생략...
+
+
+
 
 const styles = StyleSheet.create({
     container: {
