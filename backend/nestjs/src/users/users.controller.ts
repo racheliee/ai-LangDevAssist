@@ -21,7 +21,11 @@ export class UsersController {
     const { id } = req.user;
 
     try {
-      return await this.usersService.submitTest(id, submitTestDto);
+      return {
+        statusCode: 200,
+        message: 'Successfully submitted test',
+        data: await this.usersService.submitTest(id, submitTestDto),
+      };
     } catch (error) {
       throw new BadRequestException('Failed to submit test');
     }
@@ -33,7 +37,11 @@ export class UsersController {
     const { id } = req.user;
 
     try {
-      return await this.usersService.getAchievements(id);
+      return {
+        statusCode: 200,
+        message: 'Successfully fetched user achievements',
+        data: await this.usersService.getAchievements(id),
+      };
     } catch (error) {
       throw new BadRequestException('Failed to retrieve user achievements');
     }
@@ -44,7 +52,11 @@ export class UsersController {
     const { id } = req.user;
 
     try {
-      return await this.usersService.getProgressments(id);
+      return {
+        statusCode: 200,
+        message: 'Successfully fetched user progress',
+        data: await this.usersService.getProgressments(id),
+      };
     } catch (error) {
       throw new BadRequestException('Failed to retrieve user progress');
     }

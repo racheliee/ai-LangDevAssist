@@ -25,6 +25,7 @@ model Users {
   refreshToken    String?
   refreshTokenExp DateTime?
   lastLogin       DateTime?
+  interest        String
 
   // Relationships
   testResults     TestResults[]
