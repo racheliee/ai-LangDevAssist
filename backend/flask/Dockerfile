@@ -1,9 +1,14 @@
 FROM python:3.12-slim
 
 COPY . /app
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    wget \
+    && apt-get clean
 
+RUN pip3 install --upgrade pip
 RUN pip3 install flask	
-RUN pip3 install -r /app/requirements.txt
+RUN pip3 install --no-cache-dir -r /app/requirements.txt
 
 WORKDIR /app
 

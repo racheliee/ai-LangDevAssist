@@ -24,7 +24,7 @@ services:
       - app
     container_name: main
     build:
-      context: . ## Dockerfile이 있는 경로 (절대경로 또는 상대경로)
+      context: nestjs/ ## Dockerfile이 있는 경로 (절대경로 또는 상대경로)
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
@@ -32,6 +32,17 @@ services:
       # - ${SERVER_PORT}:${SERVER_PORT} # 검색되면 쓰고 아니면 아래 포트로 연결된다.
       - 8000:8000
     env_file:
-      - .env
+      - nestjs/.env
     depends_on:
       - postgres
+
+  ai:
+    networks:
+      - app
+    container_name: ai
+    build: 
+      context: flask/
+    expose:
+      - 8080:8080
+    env_file:
+      - flask/.env
