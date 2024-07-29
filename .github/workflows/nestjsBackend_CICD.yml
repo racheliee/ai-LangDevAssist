@@ -12,7 +12,7 @@ on:
     branches: ["main"]
 defaults:
   run:
-    working-directory: "./backend/nestjs"
+    working-directory: "./backend/main"
 jobs:
   build-and-push:
     runs-on: ubuntu-latest

@@ -18,9 +18,11 @@ export class UsersService {
       this.configService.get<string>('PASSWORD_SALT_ROUNDS'),
     );
     const hashedPassword = await bcrypt.hash(data.password, saltOrRounds);
-    return this.prisma.users.create({
+    await this.prisma.users.create({
       data: { ...data, password: hashedPassword },
     });
+
+    return;
   }
 
   async findOne(id: string) {
@@ -81,26 +83,57 @@ export class UsersService {
   }
 
   async getAchievements(userId: string) {
-    const userAchievements = await this.prisma.userAchievement.findMany({
-      where: { id: userId },
+    const userAchievements = await this.prisma.userAchievements.findMany({
+      where: { userId: userId },
+      select: {
+        achievement: {
+          select: {
+            title: true,
+            description: true,
+            level: true,
+          },
+        },
+        createdAt: true,
+      },
     });
 
-    const achievementIds = userAchievements.map((ua) => ua.achievementId);
-    const achievements = await this.prisma.achievement.findMany({
-      where: { id: { in: achievementIds } },
+    const achievements = userAchievements.map((ua) => {
+      return {
+        achievement: ua.achievement,
+        createdAt: ua.createdAt,
+      };
     });
+    console.log(achievements);
+    console.log(userAchievements);
+
+    // const achievementIds = userAchievements.map((ua) => ua.achievementId);
+    // const achievements = await this.prisma.achievements.findMany({
+    //   where: { id: { in: achievementIds } },
+    // });
 
     return achievements;
   }
 
   async getProgressments(userId: string) {
-    return this.prisma.progress.findMany({
-      where: { id: userId },
+    const progressments = await this.prisma.progresses.findMany({
+      where: { userId: userId },
+      select: { type: true, progress: true, createdAt: true },
     });
+
+    const groupedProgresses = progressments.reduce((acc, progress) => {
+      const { type, ...rest } = progress;
+      if (!acc[type]) {
+        acc[type] = [];
+      }
+      acc[type].push(rest);
+      return acc;
+    }, {});
+
+    return groupedProgresses;
   }
 
   async submitTest(userId: string, testResultData: SubmitTestDto) {
-    return this.prisma.testResult.create({
+    return this.prisma.testResults.create({
       data: {
         userId: userId,
         result: testResultData.result,

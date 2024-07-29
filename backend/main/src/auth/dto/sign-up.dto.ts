@@ -17,4 +17,8 @@ export class SignUpDTO {
   @Type(() => Date)
   @IsNotEmpty()
   birth: Date;
+
+  @IsString()
+  @IsNotEmpty()
+  interest: string;
 }
