@@ -81,12 +81,12 @@ export class UsersService {
   }
 
   async getAchievements(userId: string) {
-    const userAchievements = await this.prisma.userAchievement.findMany({
+    const userAchievements = await this.prisma.userAchievements.findMany({
       where: { id: userId },
     });
 
     const achievementIds = userAchievements.map((ua) => ua.achievementId);
-    const achievements = await this.prisma.achievement.findMany({
+    const achievements = await this.prisma.achievements.findMany({
       where: { id: { in: achievementIds } },
     });
 
@@ -94,13 +94,13 @@ export class UsersService {
   }
 
   async getProgressments(userId: string) {
-    return this.prisma.progress.findMany({
+    return this.prisma.progresses.findMany({
       where: { id: userId },
     });
   }
 
   async submitTest(userId: string, testResultData: SubmitTestDto) {
-    return this.prisma.testResult.create({
+    return this.prisma.testResults.create({
       data: {
         userId: userId,
         result: testResultData.result,

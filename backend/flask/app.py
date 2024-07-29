@@ -33,23 +33,16 @@ def generate_problem():
 
 @app.route('/generate_feedback', methods=['POST'])
 def generate_feedback():
-    file = request.files['audio']
-    data = request.get_json()
-    problemId = data['problemId']
+    print(request.files)
+
+    file = request.files['voice']
+    form = request.form
+    problemId = form.get('problemId')
+    answer = form.get('answer')
     
-    if file.filename == '':
-        return jsonify({
-            "statusCode": 400,
-            "message":'No selected file'
-        })
-    
-    if not file or not allowed_file(file.filename):
-        return jsonify({
-            "statusCode": 400,
-            "message":'Invalid file'
-        })
-    
-    audio_path = os.path.join(os.path.dirname(__file__), "static", f"{problemId}.m4a")
+    print(file, problemId, answer)
+    audio_path = os.path.join(os.path.dirname(__file__), "modules", "static", "audio", f"{problemId}.m4a")
+    print('audio_path:', audio_path)
     file.save(audio_path)
     
     feedback = feedback_generator.start_analysis(audio_path)
