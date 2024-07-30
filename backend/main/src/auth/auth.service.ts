@@ -59,19 +59,27 @@ export class AuthService {
   }
 
   async refresh(refreshToken: string): Promise<{ accessToken: string }> {
-    const { id } = await this.jwtService.verifyAsync(refreshToken, {
-      secret: process.env.JWT_REFRESH_TOKEN_SECRET,
-    });
+    try {
+      const { id } = await this.jwtService.verifyAsync(refreshToken, {
+        secret: process.env.JWT_REFRESH_TOKEN_SECRET,
+      });
 
-    const user = await this.usersService.getUserIfRefreshTokenMatches(
-      refreshToken,
-      id,
-    );
-    if (!user) {
-      throw new UnauthorizedException('Invalid refresh token');
+      const user = await this.usersService.getUserIfRefreshTokenMatches(
+        refreshToken,
+        id,
+      );
+      if (!user) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      const accessToken = await this.generateAccessToken(user);
+      return { accessToken };
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        throw new UnauthorizedException('Refresh token expired');
+      } else {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
     }
-
-    const accessToken = await this.generateAccessToken(user);
-    return { accessToken };
   }
 }

@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Logger,
   Post,
   Req,
   UseGuards,
@@ -10,11 +11,13 @@ import {
 import { UsersService } from './users.service';
 import { JwtAccessAuthGuard } from 'common/guards/jwt-access.guard';
 import { SubmitTestDto } from './dto/submit-test.dto';
+import { JwtPayload } from 'src/auth/auth.service';
 
 @Controller('users')
 @UseGuards(JwtAccessAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+  private readonly logger: Logger;
 
   @Post('submitTest')
   async submitTest(@Req() req: any, @Body() submitTestDto: SubmitTestDto) {
@@ -27,11 +30,11 @@ export class UsersController {
         data: await this.usersService.submitTest(id, submitTestDto),
       };
     } catch (error) {
+      this.logger.error(error);
       throw new BadRequestException('Failed to submit test');
     }
   }
 
-  // Implement following methods
   @Get('achievements')
   async getAchievements(@Req() req: any) {
     const { id } = req.user;
@@ -43,6 +46,7 @@ export class UsersController {
         data: await this.usersService.getAchievements(id),
       };
     } catch (error) {
+      this.logger.error(error);
       throw new BadRequestException('Failed to retrieve user achievements');
     }
   }
@@ -58,16 +62,26 @@ export class UsersController {
         data: await this.usersService.getProgressments(id),
       };
     } catch (error) {
+      this.logger.error(error);
       throw new BadRequestException('Failed to retrieve user progress');
     }
   }
 
+  // TODO: refine the response data
   @Get('me')
   async me(@Req() req: any) {
+    const user: JwtPayload = req.user;
+    // const retUser = {
+    //   nickname: user.nickname,
+    //   birth: user.birth,
+    //   lastLogin: user.lastLogin,
+    // };
+
     return {
       statusCode: 200,
       message: 'Successfully fetched user',
-      data: req.user,
+      // data: retUser,
+      data: user,
     };
   }
 }
