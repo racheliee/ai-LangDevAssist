@@ -1,0 +1,37 @@
+version: '3.7'
+
+networks: # compose를 이용해 실행 시킬 두 컨테이너의 통신을 위한 network 설정
+  app:
+    driver: bridge
+
+services:
+  postgres:
+    image: postgres:14
+    networks:
+      - app
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_DB: ${PSQL_DB}
+      POSTGRES_PASSWORD: ${PSQL_PASSWORD}
+      POSTGRES_USER: ${PSQL_USER}
+      TZ: Asia/Seoul
+
+  main:
+    networks:
+      - app
+    container_name: main
+    build:
+      context: . ## Dockerfile이 있는 경로 (절대경로 또는 상대경로)
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      # - ${SERVER_PORT}:${SERVER_PORT} # 검색되면 쓰고 아니면 아래 포트로 연결된다.
+      - 8000:8000
+    env_file:
+      - .env
+    depends_on:
+      - postgres

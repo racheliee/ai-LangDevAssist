@@ -6,13 +6,9 @@ on:
       - backend/flask/**
       - .github/workflows/flaskBackend_CICD.yml
     branches: ["main"]
-  pull_request:
-    paths:
-      - backend/flask/**
-    branches: ["main"]
 defaults:
   run:
-    working-directory: "backend/flask"
+    working-directory: "backend/AI"
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
