@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { Users } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -14,6 +14,10 @@ export class UsersService {
   ) {}
 
   async create(data: SignUpDTO) {
+    if (await this.findOneByLoginId(data.loginId)) {
+      throw new ConflictException('User already exists');
+    }
+
     const saltOrRounds = parseInt(
       this.configService.get<string>('PASSWORD_SALT_ROUNDS'),
     );

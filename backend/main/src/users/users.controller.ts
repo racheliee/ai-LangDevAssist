@@ -16,10 +16,8 @@ import { JwtPayload } from 'src/auth/auth.service';
 @Controller('users')
 @UseGuards(JwtAccessAuthGuard)
 export class UsersController {
-  constructor(
-    private readonly logger: Logger,
-    private readonly usersService: UsersService,
-  ) {}
+  constructor(private readonly usersService: UsersService) {}
+  private readonly logger: Logger;
 
   @Post('submitTest')
   async submitTest(@Req() req: any, @Body() submitTestDto: SubmitTestDto) {
