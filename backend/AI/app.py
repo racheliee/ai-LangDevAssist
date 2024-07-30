@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify
 import modules.feedback_generator as feedback_generator
 import uuid
 import os
+import base64
+from io import BytesIO
 
 app = Flask(__name__)
 
@@ -20,12 +22,30 @@ def generate_problem():
             "message": "Invalid request"
         })
     
-    problem_content = ""
     problemId = str(uuid.uuid4())
+    
+    userInfo = data.get('userInfo')
+    whole_text, question, answer = feedback_generator.generate_language_diagnosis_question(userInfo)
+    img = feedback_generator.generate_image_from_description(question)
+    img_path = os.path.join(os.path.dirname(__file__), "modules", "static", "images", f"{problemId}.png")
+    img.save(img_path)
+    # 이미지를 메모리 버퍼에 저장
+    img_io = BytesIO()
+    img.save(img_io, 'PNG')
+    img_io.seek(0)  # 버퍼 포인터를 처음으로 되돌림
+
+    # 이미지를 base64로 인코딩
+    img_base64 = base64.b64encode(img_io.getvalue()).decode('utf-8')
+
     problem = {
         "id": problemId,
-        "content": problem_content
+        "whole_text": whole_text,
+        "answer": answer,
+        "question": question,
+        "image": img_base64,
+        "image_path": img_path
     }
+    
     return jsonify({
         "statusCode": 200,
         "data": problem
