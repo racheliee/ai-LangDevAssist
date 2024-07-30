@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   InternalServerErrorException,
+  Logger,
   Post,
   Req,
   UploadedFile,
@@ -16,6 +17,7 @@ import { ChatService } from './chat.service';
 @UseGuards(JwtAccessAuthGuard)
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
+  private readonly logger = new Logger(ChatController.name);
 
   @Post('feedback')
   @UseInterceptors(FileInterceptor('voice'))
@@ -35,6 +37,7 @@ export class ChatController {
       );
       return feedback;
     } catch (error) {
+      this.logger.error(error.message);
       throw new InternalServerErrorException(error.message);
     }
   }
