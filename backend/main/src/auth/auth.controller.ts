@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Logger,
   Post,
   Req,
   Res,
@@ -20,6 +21,7 @@ export class AuthController {
     private authService: AuthService,
     private usersService: UsersService,
   ) {}
+  private readonly logger = new Logger(AuthController.name);
 
   @Post('signup')
   async signUp(@Body() signUpDTO: SignUpDTO) {
@@ -31,6 +33,7 @@ export class AuthController {
         data: user,
       };
     } catch (error) {
+      this.logger.error(error.message);
       throw error;
     }
   }
@@ -59,6 +62,7 @@ export class AuthController {
         data: { access_token: accessToken, refresh_token: refreshToken },
       };
     } catch (error) {
+      this.logger.error(error.message);
       throw error;
     }
   }
@@ -81,6 +85,7 @@ export class AuthController {
         data: { access_token: accessToken },
       });
     } catch (error) {
+      this.logger.error(error.message);
       throw error;
     }
   }
@@ -97,6 +102,7 @@ export class AuthController {
         message: 'Successfully signed out',
       };
     } catch (error) {
+      this.logger.error(error.message);
       throw error;
     }
   }
