@@ -7,6 +7,7 @@ import * as Keychain from 'react-native-keychain';
 import {useNavigation} from '@react-navigation/native'; 
 import {RootStackParamList} from '../../App.tsx'; 
 import {StackNavigationProp} from '@react-navigation/stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const Test = () => {
@@ -77,6 +78,14 @@ const Test = () => {
       if(response.data.statusCode === 200){
         console.log("테스트 결과가 성공적으로 제출되었습니다.");
         const refresh = await axios.post('/auth/refresh');
+        if(refresh.status = 200){
+          await AsyncStorage.setItem('Tokens', JSON.stringify({
+            'accessToken': refresh.data.data.access_token,
+          }))
+        }
+        else{
+          console.log("토큰 재발급 에러. 다시 시도해주세요.");
+        }
         await Keychain.setGenericPassword('userToken', refresh.data.data.access_token);
         console.log('response.data.accessToken', refresh.data.data.access_token);
         console.log('refresh.data.data.lastLogin', refresh.data);

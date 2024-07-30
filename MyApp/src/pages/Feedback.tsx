@@ -9,8 +9,21 @@ import Inputbox from '../components/Inputbox.tsx';
 
 
 const Feedback: React.FC = () => {
-
+    axios.defaults.baseURL = 'http://13.125.116.197:8000';
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const [feedback, setFeedback] = useState('');
+  const setFeedbacknull = () => {
+    setFeedback('');
+  };
+    const handleChange = (value: string) => {
+        setFeedback(value);
+        console.log(feedback);
+    };
+  const handlesubmit = () => {
+    axios.post('/feedback', {
+      feedback: feedback,
+    })
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -31,12 +44,15 @@ const Feedback: React.FC = () => {
                     fontSize: 24,
                     fontWeight: 200,
                     padding: 15,
+                
                     
                 }}
+                value={feedback}
+                onChangeText={handleChange}
                     placeholder="피드백을 입력해주세요."
                     
                 />
-                <Greenbtn title="제출" onPress={() => navigation.navigate('Main')} />
+                <Greenbtn title="제출" onPress={() => handlesubmit} />
             </SafeAreaView>
             
         </SafeAreaView>
@@ -71,6 +87,7 @@ const styles = StyleSheet.create({
         width: '100%',
         flex: 5,
     }
+
 });
 
 export default Feedback;
