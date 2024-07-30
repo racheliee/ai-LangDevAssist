@@ -1,11 +1,16 @@
 from flask import Flask, request, jsonify
 import modules.feedback_generator as feedback_generator
+import modules.problem_generator as problem_generator
 import uuid
 import os
 import base64
 from io import BytesIO
+from dotenv import load_dotenv
 
 app = Flask(__name__)
+
+load_dotenv()
+rag_chain = feedback_generator.create_rag_chain(os.environ.get('CHAIN_PDF_PATH'))
 
 ALLOWED_EXTENSIONS = set(['m4a'])
 def allowed_file(filename):
@@ -25,8 +30,8 @@ def generate_problem():
     problemId = str(uuid.uuid4())
     
     userInfo = data.get('userInfo')
-    whole_text, question, answer = feedback_generator.generate_language_diagnosis_question(userInfo)
-    img = feedback_generator.generate_image_from_description(question)
+    whole_text, question, answer = problem_generator.generate_language_diagnosis_question(userInfo)
+    img = problem_generator.generate_image_from_description(question)
     img_path = os.path.join(os.path.dirname(__file__), "modules", "static", "images", f"{problemId}.png")
     img.save(img_path)
     # 이미지를 메모리 버퍼에 저장
@@ -60,18 +65,20 @@ def generate_feedback():
     problemId = form.get('problemId')
     answer = form.get('answer')
     
-    print(file, problemId, answer)
     audio_path = os.path.join(os.path.dirname(__file__), "modules", "static", "audio", f"{problemId}.m4a")
-    print('audio_path:', audio_path)
     file.save(audio_path)
     
-    feedback = feedback_generator.start_analysis(audio_path)
+    sentence, feedback = feedback_generator.analyze_audio_and_provide_feedback(audio_path)
+    rag_feedback = feedback_generator.provide_rag_feedback(rag_chain, feedback)
+    
+    is_correct = feedback_generator.is_similar(answer, sentence)
     
     return jsonify({
         "statusCode": 200,
         "data": {
             "saved_path": audio_path,
-            "feedback": feedback
+            "feedback": rag_feedback,
+            "is_correct": is_correct
         }
     })
 
