@@ -63,15 +63,11 @@ export class ChatService {
       const url =
         this.configService.get<string>('AI_SERVER_URL') + '/generate_problem';
 
-      const response: AxiosResponse<GeneratedProblemDTO> = await firstValueFrom(
-        this.httpService.post(url, {
-          userInfo: userInfo,
-        }),
-      );
+      const response: AxiosResponse<GeneratedProblemDTO> =
+        await this.communicateWithAI(url, userInfo);
 
-      const { id, question, answer, image, image_path, whole_text } = (
-        await response
-      ).data;
+      const { id, question, answer, image, image_path, whole_text } =
+        response.data;
 
       await this.prismaService.problems.create({
         data: {
@@ -88,6 +84,14 @@ export class ChatService {
         question,
         image,
       };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async communicateWithAI(url: string, data: any): Promise<AxiosResponse<any>> {
+    try {
+      return await firstValueFrom(this.httpService.post(url, data));
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
