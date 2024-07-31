@@ -31,6 +31,8 @@ def generate_problem():
     problemId = str(uuid.uuid4())
     
     userInfo = data.get('userInfo')
+    print(userInfo)
+    
     whole_text, _question, answer = problem_generator.generate_language_diagnosis_question(userInfo)
     img = problem_generator.generate_image_from_description(_question)
     img_path = os.path.join(os.path.dirname(__file__), "modules", "static", "images", f"{problemId}.png")
