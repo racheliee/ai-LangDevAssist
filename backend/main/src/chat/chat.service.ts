@@ -56,7 +56,7 @@ export class ChatService {
         feedback: parentFeedback,
       };
 
-      this.logger.debug(userInfo);
+      this.logger.log(userInfo);
 
       const url =
         this.configService.get<string>('AI_SERVER_URL') + '/generate_problem';
