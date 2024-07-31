@@ -102,5 +102,6 @@ model Problems {
   imagePath   String
   voicePath   String?
   wholeText   String
+  feedback    String?
   createdAt   DateTime @default(now())
 }

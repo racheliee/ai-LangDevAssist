@@ -117,7 +117,16 @@ export class ChatService {
           { headers },
         ),
       );
-      console.log(response.data);
+
+      await this.prismaService.problems.update({
+        where: { id: problemId },
+        data: {
+          isCorrect: response.data.is_correct,
+          voicePath: response.data.saved_path,
+          feedback: response.data.feedback,
+        },
+      });
+
       return response.data;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
