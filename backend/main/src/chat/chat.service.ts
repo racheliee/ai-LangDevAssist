@@ -57,11 +57,11 @@ export class ChatService {
       };
 
       this.logger.log(userInfo);
+      this.logger.log(user);
 
       const url =
         this.configService.get<string>('AI_SERVER_URL') + '/generate_problem';
-      console.log('Sending request to AI server');
-      console.log(url);
+
       const response: { data: GeneratedProblemDTO } = await firstValueFrom(
         this.httpService.post(url, {
           userInfo: userInfo,
