@@ -50,13 +50,14 @@ export class ChatService {
         feedback: parentFeedback,
       };
 
+      const url =
+        this.configService.get<string>('AI_SERVER_URL') + '/generate_problem';
+      console.log('Sending request to AI server');
+      console.log(url);
       const response: { data: GeneratedProblemDTO } = await firstValueFrom(
-        this.httpService.post(
-          this.configService.get<string>('AI_SERVER_URL') + '/generate_problem',
-          {
-            userInfo: userInfo,
-          },
-        ),
+        this.httpService.post(url, {
+          userInfo: userInfo,
+        }),
       );
 
       const { id, question, answer, image, image_path, whole_text } =
