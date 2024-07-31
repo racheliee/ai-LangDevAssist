@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
@@ -16,6 +20,7 @@ export class ChatService {
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
   ) {}
+  private readonly logger = new Logger(ChatService.name);
 
   async generateProblem(user: Users) {
     try {
@@ -50,6 +55,8 @@ export class ChatService {
         languageGoals: null,
         feedback: parentFeedback,
       };
+
+      this.logger.debug(userInfo);
 
       const url =
         this.configService.get<string>('AI_SERVER_URL') + '/generate_problem';
