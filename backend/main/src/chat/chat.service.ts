@@ -24,69 +24,67 @@ export class ChatService {
   private readonly logger = new Logger(ChatService.name);
 
   async generateProblem(userId: string) {
-    try {
-      const user = await this.prismaService.users.findUnique({
-        where: { id: userId },
-      });
-      const cur = new Date();
-      const birth = new Date(user.birth);
-      const month = Math.abs(
-        (cur.getFullYear() - birth.getFullYear()) * 12 +
-          (cur.getMonth() - birth.getMonth()),
-      );
+    const user = await this.prismaService.users.findUnique({
+      where: { id: userId },
+    });
+    const cur = new Date();
+    const birth = new Date(user.birth);
+    const month = Math.abs(
+      (cur.getFullYear() - birth.getFullYear()) * 12 +
+        (cur.getMonth() - birth.getMonth()),
+    );
 
-      const problems: Problems[] = await this.prismaService.problems.findMany({
-        where: { userId: user.id },
-        orderBy: { createdAt: 'desc' },
-        take: 20,
-      });
+    const problems: Problems[] = await this.prismaService.problems.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    });
 
-      const answerRate =
-        problems.reduce((acc, cur) => acc + (cur.isCorrect ? 1 : 0), 0) /
-        problems.length;
+    const answerRate =
+      problems.reduce((acc, cur) => acc + (cur.isCorrect ? 1 : 0), 0) /
+      problems.length;
 
-      // TODO: 기준표 보고 languageLevel 계산하기
-      const languageLevel = '초급';
+    // TODO: 기준표 보고 languageLevel 계산하기
+    const languageLevel = '초급';
 
-      // TODO: feedback 불러오기
-      const parentFeedback = '';
+    // TODO: feedback 불러오기
+    const parentFeedback = '';
 
-      const userInfo = {
+    const data = {
+      userInfo: {
         age: month,
         accuracy: answerRate,
         interests: user.interest,
         languageLevel: languageLevel,
         languageGoals: null,
         feedback: parentFeedback,
-      };
+      },
+    };
 
-      const url =
-        this.configService.get<string>('AI_SERVER_URL') + '/generate_problem';
+    const url =
+      this.configService.get<string>('AI_SERVER_URL') + '/generate_problem';
 
-      const response: AxiosResponse<GeneratedProblemDTO> =
-        await this.communicateWithAI(url, userInfo);
+    const response: AxiosResponse<GeneratedProblemDTO> =
+      await this.communicateWithAI(url, data);
 
-      const { id, question, answer, image, image_path, whole_text } =
-        response.data;
+    const { id, question, answer, image, image_path, whole_text } =
+      response.data;
 
-      await this.prismaService.problems.create({
-        data: {
-          id: id,
-          userId: user.id,
-          question: question,
-          answer: answer,
-          imagePath: image_path,
-          wholeText: whole_text,
-        },
-      });
+    await this.prismaService.problems.create({
+      data: {
+        id: id,
+        userId: user.id,
+        question: question,
+        answer: answer,
+        imagePath: image_path,
+        wholeText: whole_text,
+      },
+    });
 
-      return {
-        question,
-        image,
-      };
-    } catch (error) {
-      throw new InternalServerErrorException(error.message);
-    }
+    return {
+      question,
+      image,
+    };
   }
 
   async communicateWithAI(url: string, data: any): Promise<AxiosResponse<any>> {
