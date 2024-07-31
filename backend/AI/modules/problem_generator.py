@@ -90,6 +90,11 @@ def generate_language_diagnosis_question(user_info):
     return whole_text, question, answer
 
 
+def extract_question_with_choices(text):
+    match = re.search(r"\*\*문제 \d+:\*\* (.+?)(\n- .+)+", text, re.DOTALL)
+    if match:
+        return match.group(0).split('\n- **정답:')[0]
+    return None
 
 def generate_image_from_description(description):
     '''

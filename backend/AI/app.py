@@ -30,8 +30,8 @@ def generate_problem():
     problemId = str(uuid.uuid4())
     
     userInfo = data.get('userInfo')
-    whole_text, question, answer = problem_generator.generate_language_diagnosis_question(userInfo)
-    img = problem_generator.generate_image_from_description(question)
+    whole_text, _question, answer = problem_generator.generate_language_diagnosis_question(userInfo)
+    img = problem_generator.generate_image_from_description(_question)
     img_path = os.path.join(os.path.dirname(__file__), "modules", "static", "images", f"{problemId}.png")
     img.save(img_path)
     # 이미지를 메모리 버퍼에 저장
@@ -41,14 +41,14 @@ def generate_problem():
 
     # 이미지를 base64로 인코딩
     img_base64 = base64.b64encode(img_io.getvalue()).decode('utf-8')
-
+    question = problem_generator.extract_question_with_choices(whole_text)
     problem = {
         "id": problemId,
-        "whole_text": whole_text,
-        "answer": answer,
         "question": question,
+        "answer": answer,
         "image": img_base64,
-        "image_path": img_path
+        "image_path": img_path,
+        "whole_text": whole_text
     }
     
     return jsonify({
