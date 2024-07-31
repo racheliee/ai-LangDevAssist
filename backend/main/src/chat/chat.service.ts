@@ -59,9 +59,6 @@ export class ChatService {
         feedback: parentFeedback,
       };
 
-      this.logger.log(userInfo);
-      this.logger.log(user);
-
       const url =
         this.configService.get<string>('AI_SERVER_URL') + '/generate_problem';
 
@@ -73,6 +70,10 @@ export class ChatService {
 
       const { id, question, answer, image, image_path, whole_text } =
         response.data;
+
+      this.logger.log('data: ' + response.data);
+      this.logger.log('Generated problem: ' + question);
+      this.logger.log('Answer: ' + answer);
 
       await this.prismaService.problems.create({
         data: {
