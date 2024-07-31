@@ -5,9 +5,9 @@ import {
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, map } from 'rxjs';
 import * as FormData from 'form-data';
-import { Express } from 'express';
+import { Express, response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import { GeneratedFeedbackDTO } from './dto/feedback.dto';
 import { Problems } from '@prisma/client';
@@ -64,28 +64,26 @@ export class ChatService {
     const url =
       this.configService.get<string>('AI_SERVER_URL') + '/generate_problem';
 
-    return this.communicateWithAI(url, data).then(async (response) => {
-      const { id, question, answer, image, image_path, whole_text } =
-        response.data;
+    const response = await firstValueFrom(this.httpService.post(url, data));
 
-      return await this.prismaService.problems
-        .create({
-          data: {
-            id: id,
-            userId: user.id,
-            question: question,
-            answer: answer,
-            imagePath: image_path,
-            wholeText: whole_text,
-          },
-        })
-        .then(() => {
-          return {
-            question,
-            image,
-          };
-        });
+    const { id, question, answer, image, image_path, whole_text } =
+      response.data.data;
+
+    await this.prismaService.problems.create({
+      data: {
+        id: id,
+        userId: user.id,
+        question: question,
+        answer: answer,
+        imagePath: image_path,
+        wholeText: whole_text,
+      },
     });
+
+    return {
+      question,
+      image,
+    };
   }
 
   async communicateWithAI(url: string, data: any): Promise<AxiosResponse<any>> {
@@ -120,8 +118,7 @@ export class ChatService {
     };
 
     try {
-      console.log('Sending request to AI server');
-      const response: { data: GeneratedFeedbackDTO } = await firstValueFrom(
+      const response = await firstValueFrom(
         this.httpService.post(
           this.configService.get<string>('AI_SERVER_URL') +
             '/generate_feedback',
@@ -133,9 +130,9 @@ export class ChatService {
       await this.prismaService.problems.update({
         where: { id: problemId },
         data: {
-          isCorrect: response.data.is_correct,
-          voicePath: response.data.saved_path,
-          feedback: response.data.feedback,
+          isCorrect: response.data?.data.is_correct,
+          voicePath: response.data?.data.saved_path,
+          feedback: response.data?.data.feedback,
         },
       });
 
