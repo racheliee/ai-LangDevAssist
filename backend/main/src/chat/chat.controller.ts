@@ -24,7 +24,7 @@ export class ChatController {
     const { user } = req;
 
     try {
-      const problem = await this.chatService.generateProblem(user);
+      const problem = await this.chatService.generateProblem(user.id);
       return {
         statusCode: 200,
         message: 'Successfully generated problem',

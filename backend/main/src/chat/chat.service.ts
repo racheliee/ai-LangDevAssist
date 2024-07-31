@@ -10,7 +10,7 @@ import * as FormData from 'form-data';
 import { Express } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import { GeneratedFeedbackDTO } from './dto/feedback.dto';
-import { Problems, Users } from '@prisma/client';
+import { Problems } from '@prisma/client';
 import { GeneratedProblemDTO } from './dto/problem.dto';
 
 @Injectable()
@@ -22,8 +22,11 @@ export class ChatService {
   ) {}
   private readonly logger = new Logger(ChatService.name);
 
-  async generateProblem(user: Users) {
+  async generateProblem(userId: string) {
     try {
+      const user = await this.prismaService.users.findUnique({
+        where: { id: userId },
+      });
       const cur = new Date();
       const birth = new Date(user.birth);
       const month = Math.abs(
