@@ -10,7 +10,17 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
+import os
 
+openai_api_key = os.getenv("OPENAI_API_KEY").strip("'")
+google_api_key = os.getenv("GOOGLE_API_KEY").strip("'")
+if not openai_api_key:
+    raise ValueError("API key not found. Please set the OPENAI_API_KEY environment variable.")
+if not google_api_key:
+    raise ValueError("API key not found. Please set the GOOGLE_API_KEY environment variable.")
+
+ChatOpenAI.api_key = openai_api_key
+genai.set_api_key(google_api_key)
 
 def analyze_audio_and_provide_feedback(audio_path):
     '''

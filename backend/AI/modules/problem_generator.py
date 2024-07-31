@@ -8,7 +8,14 @@ from langchain_openai import OpenAI
 from langchain_openai import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain_core.prompts import PromptTemplate
+import os
 
+api_key = os.getenv("OPENAI_API_KEY").strip("'")
+if not api_key:
+  raise ValueError("API key not found. Please set the OPENAI_API_KEY environment variable.")
+
+OpenAI.api_key = api_key
+ChatOpenAI.api_key = api_key
 
 def generate_language_diagnosis_question(user_info):
     '''
@@ -18,6 +25,7 @@ def generate_language_diagnosis_question(user_info):
     2. question: 문제(이를 참고해 이미지를 생성)
     3. answer: 정답(유저가 답하는 문장과 비교함으로써, 문제를 맞췄는지 파악)
     '''
+    
     prompt = f"""
     사용자 정보:
     - 연령: {user_info['age']}개월
