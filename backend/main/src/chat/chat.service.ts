@@ -46,7 +46,8 @@ export class ChatService {
         age: month,
         accuracy: answerRate,
         interests: user.interest,
-        language_level: languageLevel,
+        languageLevel: languageLevel,
+        languageGoals: null,
         feedback: parentFeedback,
       };
 
