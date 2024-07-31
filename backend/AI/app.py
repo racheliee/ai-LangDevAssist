@@ -6,6 +6,9 @@ import os
 import base64
 from io import BytesIO
 from dotenv import load_dotenv
+import logging
+
+logging.basicConfig(filename = "logs/project.log", level = logging.DEBUG)
 
 app = Flask(__name__)
 
@@ -31,7 +34,11 @@ def generate_problem():
     problemId = str(uuid.uuid4())
     
     userInfo = data.get('userInfo')
-    print(userInfo, problemId, data, "------")
+    
+    logging.debug(f"Request Data: {data}")
+    logging.debug(f"User Info: {userInfo}")
+    logging.debug(f"Problem ID: {problemId}")
+    
     
     whole_text, _question, answer = problem_generator.generate_language_diagnosis_question(userInfo)
     img = problem_generator.generate_image_from_description(_question)
