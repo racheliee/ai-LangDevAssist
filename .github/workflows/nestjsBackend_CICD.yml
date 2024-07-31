@@ -3,7 +3,7 @@ name: Docker Image CI
 on:
   push:
     paths:
-      - backend/nestjs/**
+      - backend/main/**
       - .github/workflows/nestjsBackend_CICD.yml
     branches: ["main"]
 defaults:
