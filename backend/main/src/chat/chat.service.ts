@@ -12,6 +12,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { GeneratedFeedbackDTO } from './dto/feedback.dto';
 import { Problems } from '@prisma/client';
 import { GeneratedProblemDTO } from './dto/problem.dto';
+import { AxiosResponse } from 'axios';
 
 @Injectable()
 export class ChatService {
@@ -62,12 +63,11 @@ export class ChatService {
       const url =
         this.configService.get<string>('AI_SERVER_URL') + '/generate_problem';
 
-      const response: Promise<{ data: GeneratedProblemDTO }> =
-        await firstValueFrom(
-          this.httpService.post(url, {
-            userInfo: userInfo,
-          }),
-        );
+      const response: AxiosResponse<GeneratedProblemDTO> = await firstValueFrom(
+        this.httpService.post(url, {
+          userInfo: userInfo,
+        }),
+      );
 
       const { id, question, answer, image, image_path, whole_text } = (
         await response
