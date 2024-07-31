@@ -1,29 +1,66 @@
+import re
+import difflib
 import google.generativeai as genai
+from langchain_core.prompts import PromptTemplate
+from langchain_openai import ChatOpenAI
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain_openai import OpenAIEmbeddings
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
-import os
 
-def load_and_split_document(file_path):
-    """문서를 로드하고 텍스트를 분할합니다."""
-    loader = PyMuPDFLoader(file_path)
+
+def analyze_audio_and_provide_feedback(audio_path):
+    '''
+    audio_path를 입력받아, 이를 바탕으로 유저가 선택한 정답과, 발음 피드백을 제공하는 함수이다.
+    return:
+    1. sentence: 유저가 선택한 정답
+    2. feedback: 유저의 발음 피드백
+    '''
+    model = genai.GenerativeModel('models/gemini-1.5-pro-latest')
+    file = genai.upload_file(path=audio_path)
+    response = model.generate_content(['''뭐라고 말하고 있어요? 또, 이 음성의 발음이 어때요? 부족한 부분이 있으면 형식에 따라 쉽고 자세히 알려주세요.
+                                       (이모티콘 제외)
+                                        예시형식 1:
+                                        [문장:파랑색이에요, 피드백:'파랑'발음에 대한 피드백]
+                                       
+                                        예시형식 2:
+                                        [문장:삐약삐약, 피드백: '삐약'발음에 대한 피드백]
+                                       
+                                        예시형식 3:
+                                        [문장:걷고있어요, 피드백:'걷고'발음에 대한 피드백]
+                                       
+                                       ''', file])
+    
+    feedbacks = response.text
+    
+    sentence_pattern = re.compile(r"문장:\s*(.*?),\s*피드백:")
+    feedback_pattern = re.compile(r"피드백:\s*(.*)]", re.DOTALL)
+    
+    sentence_match = sentence_pattern.search(feedbacks)
+    feedback_match = feedback_pattern.search(feedbacks)
+    
+    sentence = sentence_match.group(1)
+    feedback = feedback_match.group(1)
+    
+    return sentence, feedback
+
+
+def create_rag_chain(pdf_path):
+    """
+    RAG 체인을 생성하는 함수
+    """
+    loader = PyMuPDFLoader(pdf_path)
     docs = loader.load()
+
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     splits = text_splitter.split_documents(docs)
-    return splits
-
-def create_vectorstore(splits):
-    """문서 스플릿을 사용하여 벡터스토어를 생성합니다."""
     vectorstore = FAISS.from_documents(documents=splits, embedding=OpenAIEmbeddings())
-    retriever = vectorstore.as_retriever()
-    return retriever
 
-def create_prompt_template():
-    """프롬프트 템플릿을 생성합니다."""
+    retriever = vectorstore.as_retriever()
+
     text = """
     당신은 언어장애를 갖고있는 친구들을 친절하게 상담하는 상담사입니다. 당신의 임무는 이 친구들이 끝까지 낙담하지않고, 발음을 고칠 수 있도록 도와주는 것입니다.
 
@@ -43,50 +80,32 @@ def create_prompt_template():
 
     #답변:
     """
-    return PromptTemplate.from_template(text)
-
-def initialize_rag_chain(retriever, prompt, llm):
-    """RAG 체인을 초기화합니다."""
+    
+    prompt = PromptTemplate.from_template(text)
+    
+    llm = ChatOpenAI(model_name="gpt-4o", temperature=0)
+    
     rag_chain = (
         {"context": retriever, "question": RunnablePassthrough()}
         | prompt
         | llm
         | StrOutputParser()
     )
+    
     return rag_chain
 
-def analyze_audio_file(audio_path,):
-    """음성 파일을 분석합니다."""
-    model = genai.GenerativeModel('models/gemini-1.5-pro-latest')
-    file = genai.upload_file(path=audio_path)
-    response = model.generate_content(["이 음성의 발음이 어때? 부족한 부분이 있으면 알려주세요.", file])
-    return response.text
+def is_similar(answer, sentence, threshold=0.8):
+    """
+    유저가 말한 문장과 정답이 유사한지 확인하는 함수
+    return:
+    1. True: 정답
+    2. False: 오답
+    """
+    similarity = difflib.SequenceMatcher(None, answer, sentence).ratio()
+    return similarity >= threshold
 
-def generate_rag_feedback(feedback, rag_chain):
-    """RAG 체인을 통해 피드백을 생성합니다."""
-    RAG_feedback = rag_chain.invoke(feedback)
-    return RAG_feedback
-
-def start_analysis(audio_path=None):
-    '''document_path: RAG문서의 경로
-    audio_path: 분석할 음성 파일의 경로
+def provide_rag_feedback(rag_chain, feedback):
     '''
-    document_path = os.path.join(os.path.dirname(__file__), "static/발음교육.pdf")
-
-    if audio_path is None:
-        audio_path = os.path.join(os.path.dirname(__file__), "static/Test1.m4a")
-    
-    splits = load_and_split_document(document_path)
-    retriever = create_vectorstore(splits)
-    prompt = create_prompt_template()
-    llm = ChatOpenAI(model_name="gpt-4o", temperature=0)
-    rag_chain = initialize_rag_chain(retriever, prompt, llm)
-
-    feedback = analyze_audio_file(audio_path)
-    RAG_feedback = generate_rag_feedback(feedback, rag_chain)
-
-    #print(f"\n피드백: {feedback}")
-    print(f"{RAG_feedback}")
-
-if __name__ == "__main__":
-    start_analysis()
+    RAG 체인을 이용해 피드백을 보충하는 함수
+    '''
+    return rag_chain.invoke(feedback)
