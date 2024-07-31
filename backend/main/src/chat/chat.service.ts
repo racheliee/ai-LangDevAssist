@@ -64,27 +64,28 @@ export class ChatService {
     const url =
       this.configService.get<string>('AI_SERVER_URL') + '/generate_problem';
 
-    const response: AxiosResponse<GeneratedProblemDTO> =
-      await this.communicateWithAI(url, data);
+    return this.communicateWithAI(url, data).then(async (response) => {
+      const { id, question, answer, image, image_path, whole_text } =
+        response.data;
 
-    const { id, question, answer, image, image_path, whole_text } =
-      response.data;
-
-    await this.prismaService.problems.create({
-      data: {
-        id: id,
-        userId: user.id,
-        question: question,
-        answer: answer,
-        imagePath: image_path,
-        wholeText: whole_text,
-      },
+      return await this.prismaService.problems
+        .create({
+          data: {
+            id: id,
+            userId: user.id,
+            question: question,
+            answer: answer,
+            imagePath: image_path,
+            wholeText: whole_text,
+          },
+        })
+        .then(() => {
+          return {
+            question,
+            image,
+          };
+        });
     });
-
-    return {
-      question,
-      image,
-    };
   }
 
   async communicateWithAI(url: string, data: any): Promise<AxiosResponse<any>> {
