@@ -31,7 +31,7 @@ def generate_problem():
     problemId = str(uuid.uuid4())
     
     userInfo = data.get('userInfo')
-    print(userInfo)
+    print(userInfo, problemId, data, "------")
     
     whole_text, _question, answer = problem_generator.generate_language_diagnosis_question(userInfo)
     img = problem_generator.generate_image_from_description(_question)
