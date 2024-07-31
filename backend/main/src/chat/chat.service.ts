@@ -71,6 +71,7 @@ export class ChatService {
       const { id, question, answer, image, image_path, whole_text } =
         response.data;
 
+      console.log('data: ' + response);
       this.logger.log('data: ' + response.data);
       this.logger.log('Generated problem: ' + question);
       this.logger.log('Answer: ' + answer);
