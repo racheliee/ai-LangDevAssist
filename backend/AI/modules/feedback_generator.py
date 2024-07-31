@@ -20,7 +20,7 @@ if not google_api_key:
     raise ValueError("API key not found. Please set the GOOGLE_API_KEY environment variable.")
 
 ChatOpenAI.api_key = openai_api_key
-genai.set_api_key(google_api_key)
+genai.configure(api_key=google_api_key)
 
 def analyze_audio_and_provide_feedback(audio_path):
     '''
