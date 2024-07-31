@@ -86,6 +86,12 @@ def generate_feedback():
     problemId = form.get('problemId')
     answer = form.get('answer')
     
+    if file is None or problemId is None or answer is None:
+        return jsonify({
+            "statusCode": 400,
+            "message": "Invalid request"
+        })
+    
     audio_path = os.path.join(os.path.dirname(__file__), "modules", "static", "audio", f"{problemId}.m4a")
     file.save(audio_path)
     
