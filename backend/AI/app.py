@@ -10,7 +10,8 @@ from dotenv import load_dotenv
 app = Flask(__name__)
 
 load_dotenv()
-rag_chain = feedback_generator.create_rag_chain(os.path.join(os.path.dirname(__file__), str(os.environ.get('CHAIN_PDF_PATH'))))
+rag_path =os.path.join(os.path.dirname(__file__), str(os.environ.get('CHAIN_PDF_PATH').strip("'")))
+rag_chain = feedback_generator.create_rag_chain()
 
 ALLOWED_EXTENSIONS = set(['m4a'])
 def allowed_file(filename):
