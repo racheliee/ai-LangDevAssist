@@ -62,19 +62,16 @@ export class ChatService {
       const url =
         this.configService.get<string>('AI_SERVER_URL') + '/generate_problem';
 
-      const response: { data: GeneratedProblemDTO } = await firstValueFrom(
-        this.httpService.post(url, {
-          userInfo: userInfo,
-        }),
-      );
+      const response: Promise<{ data: GeneratedProblemDTO }> =
+        await firstValueFrom(
+          this.httpService.post(url, {
+            userInfo: userInfo,
+          }),
+        );
 
-      const { id, question, answer, image, image_path, whole_text } =
-        response.data;
-
-      console.log('data: ' + response);
-      this.logger.log('data: ' + response.data);
-      this.logger.log('Generated problem: ' + question);
-      this.logger.log('Answer: ' + answer);
+      const { id, question, answer, image, image_path, whole_text } = (
+        await response
+      ).data;
 
       await this.prismaService.problems.create({
         data: {
