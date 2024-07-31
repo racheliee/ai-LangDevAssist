@@ -8,12 +8,20 @@ from io import BytesIO
 from dotenv import load_dotenv
 import logging
 
-log_dir = 'logs/project.log'
-if not os.path.exists(os.path.dirname(log_dir)):
-    os.makedirs(os.path.dirname(log_dir))
-logging.basicConfig(filename = log_dir, level = logging.DEBUG)
-
 app = Flask(__name__)
+
+logging.basicConfig(level=logging.DEBUG)
+
+# 콘솔 핸들러 추가
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
+
+# 포매터 설정
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+console_handler.setFormatter(formatter)
+
+# Flask 애플리케이션 로거에 콘솔 핸들러 추가
+app.logger.addHandler(console_handler)
 
 load_dotenv()
 rag_path =os.path.join(os.path.dirname(__file__), str(os.environ.get('CHAIN_PDF_PATH').strip("'")))
