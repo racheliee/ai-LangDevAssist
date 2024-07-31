@@ -8,7 +8,10 @@ from io import BytesIO
 from dotenv import load_dotenv
 import logging
 
-logging.basicConfig(filename = "logs/project.log", level = logging.DEBUG)
+log_dir = 'logs/project.log'
+if not os.path.exists(os.path.dirname(log_dir)):
+    os.makedirs(os.path.dirname(log_dir))
+logging.basicConfig(filename = log_dir, level = logging.DEBUG)
 
 app = Flask(__name__)
 
