@@ -98,7 +98,7 @@ model Problems {
   userId      String   
   question     String
   answer      String
-  isCorrect   Boolean
+  isCorrect   Boolean?
   imagePath   String
   voicePath   String?
   wholeText   String
