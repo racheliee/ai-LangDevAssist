@@ -5,13 +5,10 @@ import {
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { firstValueFrom, map } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import * as FormData from 'form-data';
-import { Express, response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
-import { GeneratedFeedbackDTO } from './dto/feedback.dto';
 import { Problems } from '@prisma/client';
-import { GeneratedProblemDTO } from './dto/problem.dto';
 import { AxiosResponse } from 'axios';
 
 @Injectable()
