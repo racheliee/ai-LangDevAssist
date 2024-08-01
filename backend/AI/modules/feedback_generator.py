@@ -56,7 +56,7 @@ def analyze_audio_and_provide_feedback(audio_path):
                                     ''', file])
 
         except ResourceExhausted or InternalServerError as e:
-            logging.ERROR(e)
+            logging.error(e)
             time.sleep(delay)
             retry_count += 1
             
