@@ -8,7 +8,6 @@ import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import * as FormData from 'form-data';
 import { PrismaService } from '../prisma/prisma.service';
-import { Problems } from '@prisma/client';
 
 @Injectable()
 export class ChatService {
@@ -30,15 +29,14 @@ export class ChatService {
         (cur.getMonth() - birth.getMonth()),
     );
 
-    const problems: Problems[] = await this.prismaService.problems.findMany({
+    const solveHistories = await this.prismaService.solveHistories.findMany({
       where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-      take: 20,
     });
 
-    const answerRate =
-      problems.reduce((acc, cur) => acc + (cur.isCorrect ? 1 : 0), 0) /
-      problems.length;
+    const answerRate = solveHistories.reduce(
+      (acc, cur) => (cur.isCorrect ? acc + 1 : acc),
+      0,
+    );
 
     // check and create achievement
     await this.checkAndCreateAchievement(user.id, answerRate);
@@ -47,7 +45,11 @@ export class ChatService {
     const languageLevel = '초급';
 
     // TODO: feedback 불러오기
-    const parentFeedback = '';
+    const parentFeedback = this.prismaService.parentFeedbacks.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+      select: { feedback: true, createdAt: true },
+    });
 
     const data = {
       userInfo: {
@@ -120,12 +122,13 @@ export class ChatService {
         ),
       );
 
-      await this.prismaService.problems.update({
-        where: { id: problemId },
+      this.prismaService.solveHistories.create({
         data: {
+          userId: user.id,
+          problemId: problemId,
           isCorrect: response.data?.data.is_correct,
-          voicePath: response.data?.data.saved_path,
           feedback: response.data?.data.feedback,
+          voicePath: response.data?.data.voice_path,
         },
       });
 

@@ -85,6 +85,7 @@ def generate_chat_feedback():
     form = request.form
     problemId = form.get('problemId')
     answer = form.get('answer')
+    img_path = os.path.join(os.path.dirname(__file__), "modules", "static", "images", f"{problemId}.png")
     
     if file is None or problemId is None or answer is None:
         return jsonify({
@@ -96,15 +97,19 @@ def generate_chat_feedback():
     file.save(audio_path)
     
     sentence, feedback = feedback_generator.analyze_audio_and_provide_feedback(audio_path)
-    rag_feedback = feedback_generator.provide_rag_feedback(rag_chain, feedback)
-    
     is_correct = feedback_generator.is_similar(answer, sentence)
+    
+    ret_feedback = ""
+    if is_correct:
+        ret_feedback = feedback_generator.provide_rag_feedback(rag_chain, feedback)
+    else:
+        ret_feedback = feedback_generator.generate_vocab_feedback(img_path, answer, sentence)
     
     return jsonify({
         "statusCode": 200,
         "data": {
             "saved_path": audio_path,
-            "feedback": rag_feedback,
+            "feedback": ret_feedback,
             "is_correct": is_correct
         }
     })
