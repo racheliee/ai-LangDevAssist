@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, Logger } from '@nestjs/common';
 import { Users } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -11,7 +11,8 @@ export class UsersService {
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
-  ) {}
+  ) { }
+  private readonly logger = new Logger(UsersService.name);
 
   async create(data: SignUpDTO) {
     if (await this.findOneByLoginId(data.loginId)) {
@@ -54,7 +55,7 @@ export class UsersService {
     const now = new Date();
     const refreshTokenExp = new Date(
       now.getTime() +
-        parseInt(this.configService.get<string>('JWT_REFRESH_TOKEN_EXP')),
+      parseInt(this.configService.get<string>('JWT_REFRESH_TOKEN_EXP')),
     );
 
     return this.prisma.users.update({
@@ -86,7 +87,130 @@ export class UsersService {
     });
   }
 
+  /*
+    checks and creates an achievement if the user is eligible
+    criteria: achieved new highest answer rate (update the old achievement's answer rate if needed)
+ */
+  private async checkAndCreateAnsRateAchievement(userId: string) {
+    // TODO: fix
+    const progressments = await this.prisma.progresses.findMany({
+      where: { userId },
+      select: { },
+    });
+
+    // get most recent progressment
+    const mostRecentProgress = progressments[progressments.length - 1];
+
+    const highestAnsRateAchievement =
+      await this.prisma.userAchievements.findFirst({
+        where: { userId },
+        include: {
+          achievement: true,
+        },
+        orderBy: {
+          achievement: {
+            level: 'desc',
+          },
+        },
+      });
+
+    // if the user already has an achievement on highest accuracy
+    if (highestAnsRateAchievement) {
+      // check if the new answer rate is higher than the current 
+      if (newAnswerRate > highestAnsRateAchievement.achievement.level) {
+        await this.prisma.achievements.update({
+          where: { id: highestAnsRateAchievement.achievement.id },
+          data: {
+            title: `정답률 ${(newAnswerRate * 100).toFixed(2)}% 달성`,
+            description: `정답률 최고기록 달성! 주어진 문제의 ${(newAnswerRate * 100).toFixed(2)}% 정답을 맞췄어요.`,
+            level: newAnswerRate,
+          }
+        });
+
+        this.logger.log(`Highest Answer Rate achievement updated for user ${userId} to ${newAnswerRate}`);
+      }
+    }
+    // no highest answer rate achievement exists => create one
+    else {
+      const newHighAnsRateAchievement = await this.prisma.achievements.create({
+        data: {
+          title: `정답률 ${(newAnswerRate * 100).toFixed(2)}% 달성`,
+          description: `정답률 최고기록 달성! 주어진 문제의 ${(newAnswerRate * 100).toFixed(2)}% 정답을 맞췄어요.`,
+          level: newAnswerRate,
+        }
+      });
+
+      await this.prisma.userAchievements.create({
+        data: {
+          userId: userId,
+          achievementId: newHighAnsRateAchievement.id,
+        },
+      });
+
+      this.logger.log(`Highest Answer Rate achievement created for user ${userId} with answer rate ${newAnswerRate}`);
+    }
+  }
+
+  /*
+    checks and creates an achievement if the user is eligible
+    criteria: number of distinct days the user has solved problems
+  */
+  private async checkAndCreateDistinctDaysAchievement(userId: string) {
+    const learningDays = await this.prisma.progresses.findMany({
+      where: { userId },
+      select: { createdAt: true },
+    });
+
+    // get number of distinct days the user has solved problems
+    const distinctDays = new Set(learningDays.map(day => day.createdAt.toDateString())).size;
+
+    const milestones = [1, 3, 5, 7, 10, 20, 30, 45, 60, 90];
+
+    for (const milestone of milestones) { //TODO: iterate reverse
+      // if the user has not reached the milestone yet, skip
+      if (distinctDays < milestone) {
+        break;
+      }
+
+      const existingAchievement = await this.prisma.userAchievements.findFirst({
+        where: {
+          userId: userId,
+          achievement: {
+            title: `${milestone}일 학습 완료`,
+          }
+        },
+      })
+
+      // if the user already has an achievement on distinct days, skip
+      if (existingAchievement) {
+        continue;
+      }
+
+      // create a new achievement
+      const newAchievement = await this.prisma.achievements.create({
+        data: {
+          title: `${milestone}일 학습 완료`,
+          description: `${milestone}일 연속 학습을 완료했어요! 정말 대단해요!`,
+          level: milestone,
+        }
+      });
+
+      await this.prisma.userAchievements.create({
+        data: {
+          userId: userId,
+          achievementId: newAchievement.id,
+        }
+      });
+
+      this.logger.log(`Distinct Days achievement created for user ${userId} with ${milestone} days`);
+    }
+  }
+
   async getAchievements(userId: string) {
+    // TODO: renew achievements
+    this.checkAndCreateAnsRateAchievement(userId);
+    this.checkAndCreateDistinctDaysAchievement(userId);
+
     const userAchievements = await this.prisma.userAchievements.findMany({
       where: { userId: userId },
       select: {
