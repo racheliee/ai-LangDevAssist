@@ -133,7 +133,7 @@ export class ChatService {
         },
       });
 
-      return response.data;
+      return response.data.data;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
