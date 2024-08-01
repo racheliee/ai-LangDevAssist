@@ -127,7 +127,7 @@ def generate_feedback():
     return jsonify({
         "statusCode": 200,
         "data": {
-            "saved_path": audio_path,
+            "voice_path": audio_path,
             "feedback": ret_feedback,
             "is_correct": is_correct
         }
