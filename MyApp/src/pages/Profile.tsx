@@ -164,7 +164,7 @@ const Profile: React.FC = () => {
         <Text style={styles.textlink}>학습 기록</Text>
       </TouchableOpacity>
       <View style={styles.picturepart}>
-        <ImageBackground source={require('../assets/profile_land.png')} style={{ width: '100%', height: 216 }}>
+        <ImageBackground source={require('../assets/profile_land2.png')} style={{ width: '100%', height: 216 }}>
         </ImageBackground>
       </View>
     </View>

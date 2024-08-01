@@ -6,7 +6,7 @@ import {useNavigation} from '@react-navigation/native';
 import {RootStackParamList} from '../../App.tsx'; 
 import {StackNavigationProp} from '@react-navigation/stack';
 import * as Keychain from 'react-native-keychain';
-import {getme} from './utils/token.tsx';
+import {getme, getTokenFromLocal} from './utils/token.tsx';
 import codegenNativeCommands from 'react-native/Libraries/Utilities/codegenNativeCommands';
 import Circle from '../components/Circle.tsx';
 
@@ -26,12 +26,25 @@ const Achieve: React.FC = () => {
   const [getdata, setgetdata] = useState<{ data: { nickname: string; birth: Date; createdAt: Date; lastLogin: Date} }>({ data: { nickname: '', birth: new Date() , createdAt: new Date(), lastLogin: new Date()} });
   const [daydiff , setDaydiff] = useState(0);
   const [data, setData] = useState([]);
+  const [token, setToken] = useState('');
+
+  useEffect(() => {
+    const fetchdata = async () => {
+      const data = await getTokenFromLocal();
+      setToken(data);
+    }
+    fetchdata();
+  },[]);
+
   const getAchievement = async () => {
-    const Achieve = await axios.get('/users/achievements');
-    setData(Achieve.data.data);
-    console.log(Achieve.data.data[0]);
+    const Achieve = await axios.get('/users/achievements', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+    }});
+    setData(Achieve.data);
+    console.log(Achieve.data);
     
-};
+    };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -76,7 +89,7 @@ const Achieve: React.FC = () => {
       </SafeAreaView>
      
       <View style={styles.picturepart}>
-      <ImageBackground source={require('../assets/profile_land.png')} style={{ width: '100%', height: 216 }}>
+      <ImageBackground source={require('../assets/profile_land2.png')} style={{ width: '100%', height: 216 }}>
           {data.map((item: {title: string }, index) => (
             <Circle 
               key={index} 

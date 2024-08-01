@@ -97,7 +97,7 @@ const Progress: React.FC = () => {
         <Text style={styles.textlink}>내 발전도</Text>
       </TouchableOpacity>
       <View style={styles.picturepart}>
-        <ImageBackground source={require('../assets/profile_land.png')} style={{ width: '100%', height: 216 }}>
+        <ImageBackground source={require('../assets/profile_land2.png')} style={{ width: '100%', height: 216 }}>
         </ImageBackground>
       </View>
     </View>

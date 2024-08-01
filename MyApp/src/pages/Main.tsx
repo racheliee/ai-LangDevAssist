@@ -38,17 +38,30 @@ const Main: React.FC = () => {
       const temp = await getTokenFromLocal();
       setToken(temp);
     }
-    
-    
-    
     fetchdata();
-
   }, []);
 
   useEffect(() => {
+    console.log('useEffect실행됨');
     getProblem();
   }
   ,[]);
+
+  useEffect(() => {
+    const onTtsStart = () => console.log('TTS 시작');
+    const onTtsProgress = () => console.log('TTS 진행 중');
+    const onTtsFinish = () => console.log('TTS 완료');
+
+    Tts.addEventListener('tts-start', onTtsStart);
+    Tts.addEventListener('tts-progress', onTtsProgress);
+    Tts.addEventListener('tts-finish', onTtsFinish);
+
+    return () => {
+      Tts.removeEventListener('tts-start', onTtsStart);
+      Tts.removeEventListener('tts-progress', onTtsProgress);
+      Tts.removeEventListener('tts-finish', onTtsFinish);
+    };
+  }, []);
 
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -73,7 +86,7 @@ const Main: React.FC = () => {
       await AudioRecorder.prepareRecordingAtPath(path, {
         SampleRate: 22050,
         Channels: 1,
-        AudioQuality: 'High',
+        AudioQuality: 'Low',
         AudioEncoding: 'aac',
         AudioEncodingBitRate: 32000,
         IncludeBase64: true,
@@ -122,6 +135,7 @@ const Main: React.FC = () => {
       }
       
     } catch (error) {
+      console.error("마이크버튼", error);
       handlespeak('마이크 버튼을 누르고 다시한번 말해주세요');
       
     }
@@ -131,10 +145,11 @@ const Main: React.FC = () => {
     
 
  const getProblem = async () => {
+  console.log('getProblem실행됨');
     try {
       const response = await axios.post('/chat/problem', {
         headers: {
-          'Authorization': `${getTokenFromLocal()}`,
+          'Authorization': `bearer ${token}`,
         }
       });
       
@@ -143,7 +158,7 @@ const Main: React.FC = () => {
       setProblemnum(response.data.data.problemId);
       
     } catch (error) {
-      console.error("여기", error);
+      console.error("여기3", error);
     }
   }
  
@@ -168,6 +183,7 @@ const Main: React.FC = () => {
         <SafeAreaView style={styles.container}>
            
             <SafeAreaView style={styles.profilebtn}>
+              <Text style={{paddingRight:100, paddingBottom: 19, fontSize: 20, color: 'black', fontWeight: 'bold'}}>문제를 눌러주세요!</Text>
                 <Greenbtn style={{width : 50, height:50}}title = {nickname.charAt(0)} onPress={() => navigation.navigate('Profile')}/>
             </SafeAreaView>
             <SafeAreaView style={styles.mainpage}>
@@ -201,7 +217,7 @@ const styles = StyleSheet.create({
     },
     profilebtn: {
         
-        
+        flexDirection: 'row',
         flex: 1.2,
         width: '100%',
         marginRight: 80,
