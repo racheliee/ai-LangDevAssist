@@ -45,7 +45,10 @@ export class ChatController {
   ) {
     const { problemId } = body;
     const { user } = req;
-    this.logger.log(`Generating feedback for problemId: ${problemId}`);
+
+    this.logger.log(
+      `body: ${body}\n Generating feedback for problemId: ${problemId}`,
+    );
     try {
       const feedback = await this.chatService.generateFeedback(
         problemId,
