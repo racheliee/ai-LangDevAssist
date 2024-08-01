@@ -83,7 +83,7 @@ def generate_webtoon(scripts):
     return:
     1. img: 생성된 웹툰, 6컷
     '''
-    prompt_webtoon = response_storytelling.choices[0].message.content + "무조건 4컷의 이미지만 있어야 하고, 이미지 안에 어느 텍스트도 없어야해." 
+    prompt_webtoon = scripts + "무조건 4컷의 이미지만 있어야 하고, 이미지 안에 어느 텍스트도 없어야해." 
     # 이미지 생성 및 다운로드(DALL-E사용)
     response_webtoon = openai.Image.create(
         prompt= prompt_webtoon,
