@@ -127,7 +127,7 @@ def create_rag_chain(pdf_path):
     
     return rag_chain
 
-def is_similar(answer, sentence, threshold=0.8):
+def is_similar(answer, sentence, threshold=0.5):
     """
     유저가 말한 문장과 정답이 유사한지 확인하는 함수
     return:
