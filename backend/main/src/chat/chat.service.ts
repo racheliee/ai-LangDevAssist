@@ -9,7 +9,6 @@ import { firstValueFrom } from 'rxjs';
 import * as FormData from 'form-data';
 import { PrismaService } from '../prisma/prisma.service';
 import { Problems } from '@prisma/client';
-import { AxiosResponse } from 'axios';
 
 @Injectable()
 export class ChatService {
@@ -85,14 +84,6 @@ export class ChatService {
       question,
       image,
     };
-  }
-
-  async communicateWithAI(url: string, data: any): Promise<AxiosResponse<any>> {
-    try {
-      return await firstValueFrom(this.httpService.post(url, data));
-    } catch (error) {
-      throw new InternalServerErrorException(error.message);
-    }
   }
 
   async generateFeedback(
