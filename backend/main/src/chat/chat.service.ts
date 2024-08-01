@@ -139,7 +139,7 @@ export class ChatService {
       );
 
       this.logger.log(response.data);
-      this.prismaService.solveHistories.create({
+      await this.prismaService.solveHistories.create({
         data: {
           userId: user.id,
           problemId: problemId,

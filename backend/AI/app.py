@@ -104,6 +104,7 @@ def generate_feedback():
     file.save(audio_path)
     
     sentence, feedback = feedback_generator.analyze_audio_and_provide_feedback(audio_path)
+    logging.debug(answer)
     if sentence:    
         is_correct = feedback_generator.is_similar(answer, sentence)
     else:

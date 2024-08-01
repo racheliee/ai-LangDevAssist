@@ -119,7 +119,7 @@ def generate_image_from_description(description):
     return:
     1. img: 생성된 이미지
     '''
-    llm = OpenAI(temperature=0.9)
+    llm = OpenAI(temperature=0.5)
     prompt = PromptTemplate(
         input_variables=["image_desc"],
         template='''주제:{image_desc}. 주제와 100%일치하는 그림을 만들려고해. 
