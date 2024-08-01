@@ -31,8 +31,8 @@ export class ChatController {
         data: problem,
       };
     } catch (error) {
-      this.logger.error(error.message);
-      throw new InternalServerErrorException(error.message);
+      this.logger.error(error);
+      throw error;
     }
   }
 

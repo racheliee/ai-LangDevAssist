@@ -19,6 +19,7 @@ export class ChatService {
   private readonly logger = new Logger(ChatService.name);
 
   async generateProblem(userId: string) {
+    this.logger.log(userId);
     const user = await this.prismaService.users.findUnique({
       where: { id: userId },
     });
@@ -63,16 +64,28 @@ export class ChatService {
       },
     };
 
-    const url =
-      this.configService.get<string>('AI_SERVER_URL') +
-      '/chat/generate_problem';
+    let response = {
+      data: {
+        data: {
+          id: null,
+          question: null,
+          answer: null,
+          image: null,
+          image_path: null,
+          whole_text: null,
+        },
+      },
+    };
+    response.data.data;
+    while (!response.data.data.question) {
+      const url =
+        this.configService.get<string>('AI_SERVER_URL') +
+        '/chat/generate_problem';
 
-    const response = await firstValueFrom(this.httpService.post(url, data));
-
+      response = await firstValueFrom(this.httpService.post(url, data));
+    }
     const { id, question, answer, image, image_path, whole_text } =
       response.data.data;
-
-    this.logger.log(user);
 
     await this.prismaService.problems.create({
       data: {

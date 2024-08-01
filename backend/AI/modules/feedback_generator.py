@@ -12,6 +12,8 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 import os
 from langchain_core.messages import HumanMessage
+from google.api_core.exceptions import InternalServerError, ResourceExhausted
+import time
 
 openai_api_key = os.getenv("OPENAI_API_KEY").strip("'")
 google_api_key = os.getenv("GOOGLE_API_KEY").strip("'")
@@ -32,30 +34,50 @@ def analyze_audio_and_provide_feedback(audio_path):
     '''
     model = genai.GenerativeModel('models/gemini-1.5-pro-latest')
     file = genai.upload_file(path=audio_path, mime_type='audio/m4a')
-    response = model.generate_content(['''뭐라고 말하고 있어요? 또, 이 음성의 발음이 어때요? 부족한 부분이 있으면 형식에 따라 쉽고 자세히 알려주세요.
-                                       (이모티콘 제외)
-                                        예시형식 1:
-                                        [문장:파랑색이에요, 피드백:'파랑'발음에 대한 피드백]
-                                       
-                                        예시형식 2:
-                                        [문장:삐약삐약, 피드백: '삐약'발음에 대한 피드백]
-                                       
-                                        예시형식 3:
-                                        [문장:걷고있어요, 피드백:'걷고'발음에 대한 피드백]
-                                       
-                                       ''', file])
+    
+    max_retries = 20
+    retry_count = 0
+    delay = 10
+    response = None
+    while retry_count < max_retries or not response:
+        try:
+            response = model.generate_content(['''뭐라고 말하고 있어요? 또, 이 음성의 발음이 어때요? 부족한 부분이 있으면 형식에 따라 쉽고 자세히 알려주세요.
+                                    (이모티콘 제외)
+                                    예시형식 1:
+                                    [문장:파랑색이에요, 피드백:'파랑'발음에 대한 피드백]
+                                    
+                                    예시형식 2:
+                                    [문장:삐약삐약, 피드백: '삐약'발음에 대한 피드백]
+                                    
+                                    예시형식 3:
+                                    [문장:걷고있어요, 피드백:'걷고'발음에 대한 피드백]
+                                    
+                                    ''', file])
+
+        except ResourceExhausted or InternalServerError as e:
+            print(f"Error: {e}")
+            time.sleep(delay)
+            retry_count += 1
+            delay *= 2
+            
+    if retry_count == max_retries:
+        raise ResourceExhausted
     
     feedbacks = response.text
     
-    sentence_pattern = re.compile(r"문장:\s*(.*?),\s*피드백:")
-    feedback_pattern = re.compile(r"피드백:\s*(.*)]", re.DOTALL)
-    
-    sentence_match = sentence_pattern.search(feedbacks)
-    feedback_match = feedback_pattern.search(feedbacks)
-    
-    sentence = sentence_match.group(1)
-    feedback = feedback_match.group(1)
-    
+    try:    
+        sentence_pattern = re.compile(r"문장:\s*(.*?),\s*피드백:")
+        feedback_pattern = re.compile(r"피드백:\s*(.*)]", re.DOTALL)
+        
+        sentence_match = sentence_pattern.search(feedbacks)
+        feedback_match = feedback_pattern.search(feedbacks)
+        
+        sentence = sentence_match.group(1)
+        feedback = feedback_match.group(1)
+    except:
+        sentence = None
+        feedback = feedbacks
+        
     return sentence, feedback
 
 
