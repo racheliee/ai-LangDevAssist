@@ -32,7 +32,7 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
-@app.route('/generate_problem', methods=['POST'])
+@app.route('chat/generate_problem', methods=['POST'])
 def generate_problem():
     data = request.get_json()
     
@@ -77,7 +77,7 @@ def generate_problem():
         "data": problem
     })
 
-@app.route('/generate_feedback', methods=['POST'])
+@app.route('chat/generate_feedback', methods=['POST'])
 def generate_feedback():
     print(request.files)
 
