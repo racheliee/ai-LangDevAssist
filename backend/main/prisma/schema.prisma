@@ -75,7 +75,7 @@ model UserAchievements {
 model Achievements {
   id          String             @id @default(cuid())
   title       String
-  description String
+  score       Int
   level       Int?
   createdAt   DateTime           @default(now())
   users       UserAchievements[]
