@@ -16,7 +16,7 @@ export class ChatService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
-  ) {}
+  ) { }
   private readonly logger = new Logger(ChatService.name);
 
   async generateProblem(userId: string) {
@@ -27,7 +27,7 @@ export class ChatService {
     const birth = new Date(user.birth);
     const month = Math.abs(
       (cur.getFullYear() - birth.getFullYear()) * 12 +
-        (cur.getMonth() - birth.getMonth()),
+      (cur.getMonth() - birth.getMonth()),
     );
 
     const solveHistories = await this.prismaService.solveHistories.findMany({
@@ -125,7 +125,7 @@ export class ChatService {
       const response = await firstValueFrom(
         this.httpService.post(
           this.configService.get<string>('AI_SERVER_URL') +
-            '/chat/generate_feedback',
+          '/chat/generate_feedback',
           form,
           { headers },
         ),
@@ -150,13 +150,13 @@ export class ChatService {
   /*
   checks and creates an achievement if the user is eligible
   criteria:
-    1. achieved new highest answer rate (delete the old answer rate achievement)
+    1. achieved new highest answer rate (update the old achievement's answer rate if needed)
   */
   private async checkAndCreateAchievement(
     userId: string,
     newAnswerRate: number,
   ) {
-    const highestAchievement =
+    const highestAnsRateAchievement =
       await this.prismaService.userAchievements.findFirst({
         where: { userId },
         include: {
@@ -169,45 +169,40 @@ export class ChatService {
         },
       });
 
-    if (
-      highestAchievement &&
-      newAnswerRate > highestAchievement.achievement.level
-    ) {
-      await this.prismaService.userAchievements.deleteMany({
-        where: {
-          userId,
-          achievementId: highestAchievement.achievement.id,
-        },
-      });
-      await this.prismaService.achievements.delete({
-        where: {
-          id: highestAchievement.achievement.id,
-        },
-      });
-    }
+    // if the user already has an achievement on highest accuracy
+    if (highestAnsRateAchievement) {
+      // check if the new answer rate is higher than the current 
+      if (newAnswerRate > highestAnsRateAchievement.achievement.level) {
+        await this.prismaService.achievements.update({
+          where: { id: highestAnsRateAchievement.achievement.id },
+          data: {
+            title: "Highest Answer Rate",
+            description: `정답률 ${(newAnswerRate * 100).toFixed(2)}% 달성`,
+            level: newAnswerRate,
+          }
+        });
 
-    if (
-      !highestAchievement ||
-      newAnswerRate > highestAchievement.achievement.level
-    ) {
-      const newAchievement = await this.prismaService.achievements.create({
+        this.logger.log(`Highest Answer Rate achievement updated for user ${userId} to ${newAnswerRate}`);
+      }
+    }
+    // no highest answer rate achievement exists => create one
+    else {
+      const newHighAnsRateAchievement = await this.prismaService.achievements.create({
         data: {
           title: 'Highest Answer Rate',
-          description: `Achieved the highest answer rate of ${(newAnswerRate * 100).toFixed(2)}%`,
+          description: `정답률 ${(newAnswerRate * 100).toFixed(2)}% 달성`,
           level: newAnswerRate,
-        },
+        }
       });
 
       await this.prismaService.userAchievements.create({
         data: {
-          userId,
-          achievementId: newAchievement.id,
+          userId: userId,
+          achievementId: newHighAnsRateAchievement.id,
         },
       });
 
-      this.logger.log(
-        `New achievement created for user ${userId}: ${newAchievement.title}`,
-      );
+      this.logger.log(`Highest Answer Rate achievement created for user ${userId} with answer rate ${newAnswerRate}`);
     }
   }
 }
