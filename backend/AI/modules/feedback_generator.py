@@ -123,7 +123,7 @@ def provide_rag_feedback(rag_chain, feedback):
     '''
     return rag_chain.invoke(feedback)
 
-def generate_vocab_feedback(image_url, answer, sentence):
+def generate_vocab_feedback(image_data, answer, sentence):
     """
     사용자가 제공한 답변 및 이미지를 바탕으로 간접적인 피드백을 생성합니다.
 
@@ -136,13 +136,11 @@ def generate_vocab_feedback(image_url, answer, sentence):
         str: 생성된 피드백
     """
     # 이미지 데이터를 가져와 base64로 인코딩
-    response = httpx.get(image_url)
-    image_data = base64.b64encode(response.content).decode("utf-8")
 
     # HumanMessage 생성
     message = HumanMessage(
         content=[
-            {"type": "image_url", "image_url": {"url": image_url}},
+            {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{image_data}"}},
             {"type": "text", 
              "text": f'''
                         The user was asked to describe an image for {answer}, 
