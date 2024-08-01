@@ -20,5 +20,5 @@ build/
 *.env
 logs/
 
-audio/
-image/
+static/audio/*
+static/images/*
