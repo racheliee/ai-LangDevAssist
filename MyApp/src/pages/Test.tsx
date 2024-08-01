@@ -64,10 +64,10 @@ const Test = () => {
 
   const handleTest = async () => {
     if(answernum >= 12)
-      navigation.navigate('TestResult_up'); 
+      navigation.navigate('TestResult_up',{answernum}); 
       
     else
-      navigation.navigate('TestResult_down'); 
+      navigation.navigate('TestResult_down',{answernum}); 
       console.log(answernum);
     try {
       const response = await apiClient.post('/users/submitTest', {

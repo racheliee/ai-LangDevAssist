@@ -13,6 +13,9 @@ import TestResult_down from './src/pages/TestResult_down';
 import ProfileEdit from './src/pages/ProfileEdit';
 import Feedback from './src/pages/Feedback';
 import Progress from './src/pages/Progress';
+import Progressment from './src/pages/Progressment';
+import Achieve from './src/pages/Achieve';
+
 // App.tsx 파일 내에서 스택 네비게이터의 파라미터 타입을 정의
 export type RootStackParamList = {
   Login: undefined;
@@ -21,11 +24,14 @@ export type RootStackParamList = {
   Main: undefined;
   Profile: undefined;
   Test: undefined;  
-  TestResult_up: undefined;
-  TestResult_down: undefined;
+  TestResult_up: { answernum: number };
+  TestResult_down: { answernum: number };
   ProfileEdit: undefined;
   Feedback: undefined;
   Progress: undefined;
+  Progressment: undefined;
+  Achieve: undefined;
+  
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -46,6 +52,8 @@ function App() {
         <Stack.Screen name="ProfileEdit" component={ProfileEdit} options={{headerShown:false}} />
         <Stack.Screen name="Feedback" component={Feedback} options={{headerShown:false}} />
         <Stack.Screen name="Progress" component={Progress} options={{headerShown:false}} />
+        <Stack.Screen name="Progressment" component={Progressment} options={{headerShown:false}} />
+        <Stack.Screen name="Achieve" component={Achieve} options={{headerShown:false}} />
       </Stack.Navigator>
     </NavigationContainer>
   );

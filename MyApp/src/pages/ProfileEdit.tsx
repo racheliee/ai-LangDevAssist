@@ -44,7 +44,7 @@ const ProfileEdit: React.FC = () => {
         nickname: string;
         // 필요한 다른 필드들 추가
       }
-      const [getdata, setgetdata] = useState<{ data: { nickname: string; birth: Date } }>({ data: { nickname: '', birth: new Date() } });
+      const [getdata, setgetdata] = useState<{ data: { nickname: string; birth: Date } }>({ data: { nickname: '떠들이', birth: new Date() } });
       // const getme = async () => {
       //   const result = await axios.get('/users/me');
       //   setNickname(result.data.data.nickname);
@@ -113,13 +113,13 @@ const ProfileEdit: React.FC = () => {
             </SafeAreaView>
 
             <TouchableOpacity style ={styles.profilebox}>
-                <Text style = {[styles.textlink]}>전화번호</Text>  
-                <Text style = {[styles.textlink]}></Text>  
+                <Text style = {[styles.textlink]}>닉네임</Text>  
+                <Text style = {[styles.textlink]}>{getdata.data.nickname}</Text>  
             </TouchableOpacity>
             
             <TouchableOpacity style ={styles.profilebox} >
                 <Text style = {[styles.textlink]}>생년월일</Text>         
-                <Text style = {[styles.textlink]}>{getdata.data.birth.toDateString()}</Text>
+                <Text style = {[styles.textlink]}>{getdata.data.birth.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit'})}</Text>
             </TouchableOpacity> 
        
             <View style={styles.picturepart}>

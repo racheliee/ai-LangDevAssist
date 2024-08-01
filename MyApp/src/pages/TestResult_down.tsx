@@ -4,20 +4,24 @@ import Inputbox from '../components/Inputbox.tsx';
 import Greenbtn from '../components/Greenbtn.tsx';
 import axios from 'axios';
 import * as Keychain from 'react-native-keychain';
-import {useNavigation} from '@react-navigation/native'; 
+import {useNavigation, useRoute} from '@react-navigation/native'; 
 import {RootStackParamList} from '../../App.tsx'; 
 import {StackNavigationProp} from '@react-navigation/stack';
 
 
 const TestResult_down = () => {
+  
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const route = useRoute();
+  const {answernum} = route.params as { answernum: number };
+  console.log("이거wl" ,answernum);
   return (
     
     <SafeAreaView style={styles.container}>
       
         <SafeAreaView style={styles.logo}>
             <Text style = {styles.textlink}>테스트 검사 결과, {"\n"}언어장애로 의심되지 않습니다.{"\n"}
-                언어장애로 의심되는 선택 기준은 12개 이며, {"\n"}자녀분은 N 개의 항목에 해당됩니다.</Text>   
+                언어장애로 의심되는 선택 기준은 12개 이며, {"\n"}자녀분은 {answernum} 개의 항목에 해당됩니다.</Text>   
         </SafeAreaView>
 
       <SafeAreaView style={styles.inputbtn}>

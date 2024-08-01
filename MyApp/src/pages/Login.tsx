@@ -41,6 +41,7 @@ const Login = () => {
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const handleLogin = async () => {
+    
     try {
       const response = await axios.post('/auth/signin', loginData);
       if(response.status = 200){
