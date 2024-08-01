@@ -42,9 +42,6 @@ export class ChatService {
 
     const answerRate = total === 0 ? 0 : correct / total;
 
-    // check and create achievement
-    await this.checkAndCreateAchievement(user.id, answerRate);
-
     // TODO: 기준표 보고 languageLevel 계산하기
     const languageLevel = '초급';
 
