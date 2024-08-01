@@ -39,7 +39,7 @@ def analyze_audio_and_provide_feedback(audio_path):
     retry_count = 0
     delay = 10
     response = None
-    while retry_count < max_retries or not response:
+    while retry_count < max_retries and not response:
         try:
             response = model.generate_content(['''뭐라고 말하고 있어요? 또, 이 음성의 발음이 어때요? 부족한 부분이 있으면 형식에 따라 쉽고 자세히 알려주세요.
                                     (이모티콘 제외)
