@@ -133,12 +133,13 @@ export class ChatService {
         ),
       );
 
-      await this.prismaService.problems.update({
-        where: { id: problemId },
+      this.prismaService.solveHistories.create({
         data: {
+          userId: user.id,
+          problemId: problemId,
           isCorrect: response.data?.data.is_correct,
-          voicePath: response.data?.data.saved_path,
           feedback: response.data?.data.feedback,
+          voicePath: response.data?.data.voice_path,
         },
       });
 

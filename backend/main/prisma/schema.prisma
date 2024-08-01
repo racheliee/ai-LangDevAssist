@@ -113,7 +113,6 @@ model Problems {
   question     String
   answer      String
   imagePath   String
-  voicePath   String?
   wholeText   String
   createdAt   DateTime @default(now())
 
@@ -129,6 +128,7 @@ model SolveHistories {
   problemId String
   isCorrect Boolean
   feedback  String
+  voicePath String
   createdAt DateTime @default(now())
 
   // Relationships

@@ -17,7 +17,6 @@ CREATE TABLE "problems" (
     "question" TEXT NOT NULL,
     "answer" TEXT NOT NULL,
     "imagePath" TEXT NOT NULL,
-    "voicePath" TEXT,
     "wholeText" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -31,6 +30,7 @@ CREATE TABLE "solve_histories" (
     "problemId" TEXT NOT NULL,
     "isCorrect" BOOLEAN NOT NULL,
     "feedback" TEXT NOT NULL,
+    "voicePath" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "solve_histories_pkey" PRIMARY KEY ("id")
