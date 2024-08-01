@@ -13,6 +13,7 @@ import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 import Tts from 'react-native-tts';
 import { Buffer } from 'buffer';
 import { getme, getTokenFromLocal } from './utils/token.tsx';
+import { freezeEnabled } from 'react-native-screens';
 
 
 const Main: React.FC = () => {
@@ -28,23 +29,40 @@ const Main: React.FC = () => {
   const [feedback_right, setFeedback_right] = useState(false);
   const [nickname, setNickname] = useState('');
   const [path, setPath] = useState('');
-  
+  const [token, setToken] = useState('');
 
   useEffect(() => {
-    getme();
-    getProblem();
+    const fetchdata = async () => {
+      const data = await getme();
+      setNickname(data.data.nickname);
+      const temp = await getTokenFromLocal();
+      setToken(temp);
+    }
+    
+    
+    
+    fetchdata();
+
   }, []);
 
-
+  useEffect(() => {
+    getProblem();
+  }
+  ,[]);
 
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   
+  const handlespeak = (text: string) => {
+    Tts.setDefaultLanguage('ko-KR');
+    Tts.setDefaultRate(0.35);
+    Tts.speak(text);
+    
+  };
+
+
+
   
-
-
-
-
 
   const startRecording = async () => {
     setOnlearn(true);
@@ -78,7 +96,7 @@ const Main: React.FC = () => {
   const sendFeedback = async () => {
     try {
       const formData = new FormData();
-      const token = await getTokenFromLocal();
+      
       
 
       formData.append('voice', {
@@ -88,20 +106,28 @@ const Main: React.FC = () => {
       });
       
       formData.append('problemId', problemnum);
-      console.log("pidd", problemnum)
-      console.log('path', formData.getAll('problemId'));
+      
+      
 
       const response = await axios.post('/chat/feedback', formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
       });
-      console.log('response', response);
+      setFeedbacktxt(response.data.data.feedback);
+      setFeedback_right(response.data.data.isCorrect);
+      handlespeak(feedbacktxt);
+      if(feedback_right){
+        handlespeak('잘하셨어요 ! 다음 문제로 넘어갑니다.');
+      }
+      
     } catch (error) {
-      console.error("여기는 feedback", error);
+      handlespeak('마이크 버튼을 누르고 다시한번 말해주세요');
+      
     }
-    
   };
+
+
     
 
  const getProblem = async () => {
@@ -132,11 +158,7 @@ const Main: React.FC = () => {
   };
 
 
-    const handlespeak = (text: string) => {
-      if(text){
-        Tts.speak(text);
-      }
-    };
+    
   
 
 
@@ -150,11 +172,14 @@ const Main: React.FC = () => {
             </SafeAreaView>
             <SafeAreaView style={styles.mainpage}>
             <View style={styles.container}>
+              <TouchableOpacity onPress={() => handlespeak(problemtxt)}>
+        
               {problemimg ? (
                  <Image source={{ uri: `data:image/png;base64,${problemimg}`}} style={styles.image} />
               ) : (
                 <Text>loading...</Text>
               )}
+              </TouchableOpacity>
             </View> 
             </SafeAreaView>
             <SafeAreaView style={styles.mic}>
