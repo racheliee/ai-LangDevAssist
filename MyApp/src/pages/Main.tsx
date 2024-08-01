@@ -11,7 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Keychain from 'react-native-keychain';
 import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 import Tts from 'react-native-tts';
-
+import { Buffer } from 'buffer';
 
 
 const Main: React.FC = () => {
@@ -22,7 +22,7 @@ const Main: React.FC = () => {
     
   const [problemtxt, setProblemtxt] = useState('');
   const [problemimg, setProblemimg] = useState('');
-  const [problemnum, setProblemnum] = useState(0);
+  const [problemnum, setProblemnum] = useState('');
   const [feedbacktxt, setFeedbacktxt] = useState('');
   const [feedback_right, setFeedback_right] = useState(false);
   const [nickname, setNickname] = useState('');
@@ -93,28 +93,46 @@ const Main: React.FC = () => {
 
   const stopRecording = async () => {
     setOnlearn(false);
+    try{
+      await AudioRecorder.stopRecording();
+    }catch (error) {
+      console.error("여기", error);
+    }
+  };
+
+  const sendFeedback = async () => {
     try {
-      
-      console.log('audioFile', path);
       const formData = new FormData();
-      formData.append('audio', {
+      const token = await getTokenFromLocal();
+      
+      // const bufferfile = Buffer.from(path, 'base64');
+      // formData.append('voice', new Blob([bufferfile], { type: 'audio/m4a' }), 'feedback.m4a');
+
+
+  
+
+      formData.append('voice', {
         uri: path,
-        type: 'audio/aac',
-        name: 'test.m4a',
+        type: 'audio/m4a',
+        name: 'feedback.m4a',
       });
+      
       formData.append('problemId', problemnum);
+      console.log("pidd", problemnum)
+      console.log('path', formData.getAll('problemId'));
+
       const response = await axios.post('/chat/feedback', formData, {
         headers: {
-          'Authorization': `Bearer ${getTokenFromLocal()}`,
-        }
+          'Authorization': `Bearer ${token}`,
+        },
+        
       });
-      console.log(response.data.data);
-      setFeedbacktxt(response.data.data.feedbacktxt);
-      setFeedback_right(response.data.data.feedback_right);
+      
     } catch (error) {
       console.error("여기", error);
+    }
   };
-  };
+    
 
  const getProblem = async () => {
     try {
@@ -139,6 +157,7 @@ const Main: React.FC = () => {
   const handleLearn = () => {
     if (onlearn) {
         stopRecording();
+        sendFeedback();
       } else {
         startRecording();
       }
