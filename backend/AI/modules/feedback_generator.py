@@ -14,6 +14,7 @@ import os
 from langchain_core.messages import HumanMessage
 from google.api_core.exceptions import InternalServerError, ResourceExhausted
 import time
+import logging
 
 openai_api_key = os.getenv("OPENAI_API_KEY").strip("'")
 google_api_key = os.getenv("GOOGLE_API_KEY").strip("'")
@@ -55,10 +56,9 @@ def analyze_audio_and_provide_feedback(audio_path):
                                     ''', file])
 
         except ResourceExhausted or InternalServerError as e:
-            print(f"Error: {e}")
+            logging.ERROR(e)
             time.sleep(delay)
             retry_count += 1
-            delay *= 2
             
     if retry_count == max_retries:
         raise ResourceExhausted
