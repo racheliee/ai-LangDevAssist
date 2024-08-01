@@ -75,14 +75,16 @@ export class ChatService {
     const { id, question, answer, image, image_path, whole_text } =
       response.data.data;
 
+    this.logger.log(user);
+
     await this.prismaService.problems.create({
       data: {
         id: id,
-        userId: user.id,
         question: question,
         answer: answer,
         imagePath: image_path,
         wholeText: whole_text,
+        user: { connect: { id: user.id } },
       },
     });
 
