@@ -273,12 +273,14 @@ export class UsersService {
 
     const achievements = userAchievements.map((ua) => {
       return {
-        achievement: ua.achievement,
+        title: ua.achievement.title,
+        score: ua.achievement.score,
+        level: ua.achievement.level,
         createdAt: ua.createdAt,
       };
     });
 
-    const highestLevel = Math.max(...achievements.map((a) => a.achievement.level));
+    const highestLevel = Math.max(...achievements.map((a) => a.level));
 
     // console.log(achievements);
     // console.log(userAchievements);
