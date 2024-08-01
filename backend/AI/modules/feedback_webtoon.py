@@ -47,16 +47,14 @@ def feedback_webtoon(script, audio_path):
     file = genai.upload_file(path=audio_path, mime_type='audio/m4a')
     response = model.generate_content(['음성을 텍스트로 변환', file])
     user = response.text
-    response = model.generate_content([f"""기존 스크립트와 비교해서 {accuracy}의 정확도를 가지고 있어요,
-                                       뭐라고 말하고 있어요? 또, 이 음성의 발음이 어때요? {user} 기반으로 부족한 부분이 있으면 형식에 따라 쉽고 자세히 알려주세요.
-                                       단, 조심해야될 게 있어요.
-                                        1. 잘못 발음한 단어를 지적하지 마세요
-                                        2. 아이의 말을 존중해 주세요.
-                                        3. 정확한 발음을 자주 들려주세요.
-                                        4. 뻔한 말은 빼주세요.
-                                        5. 이모티콘도 빼주세요.
-                                        6. 정확한 발음을 말해서 자연스럽게 틀린걸 알게 되새겨 주세요.
-                                       """, file])
+    response = model.generate_content([f"""
+                사용자가 제공한 스크립트: {user},
+                원래 스크립트: {script},
+                아이에게 잘못된 부분을 지적하고, 올바르게 말하는 방법을 알려주세요. 가능한 한 친절하고 격려하는 방식으로 피드백을 제공해주세요.
+                이모티콘은 빼주세요.
+                '물론이죠! 아이에게 피드백을 주는 것은 중요한 일이고, 긍정적으로 격려하면서 잘못된 부분을 고칠 수 있도록 돕겠습니다.와 같은 시작 메세지는 빼주세요,
+                실제로 얘기해줄 대화 내용만 작성해주세요.
+                """, file])
     
     feedbacks = response.text
 
