@@ -84,7 +84,7 @@ def generate_webtoon(scripts):
         prompt= prompt_webtoon,
         model="dall-e-3",
         n=1,
-        size="1792x1024"
+        size="1024x1024"
     )
     image_url = response_webtoon['data'][0]['url']
     image_response = requests.get(image_url)
