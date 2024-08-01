@@ -62,7 +62,8 @@ export class ChatService {
     };
 
     const url =
-      this.configService.get<string>('AI_SERVER_URL') + '/generate_problem';
+      this.configService.get<string>('AI_SERVER_URL') +
+      '/chat/generate_problem';
 
     const response = await firstValueFrom(this.httpService.post(url, data));
 
@@ -122,7 +123,7 @@ export class ChatService {
       const response = await firstValueFrom(
         this.httpService.post(
           this.configService.get<string>('AI_SERVER_URL') +
-          '/generate_feedback',
+            '/chat/generate_feedback',
           form,
           { headers },
         ),
