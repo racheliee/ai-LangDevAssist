@@ -36,7 +36,7 @@ def generate_webtoon_script(user_info):
       API 요청:
       1. Creating stories for early diagnosis of language development disorders based on user information.
       2. After listening to the story, look at the picture and replay the story for therapeutic purposes.
-      3. After creating the story, you need to create a 6-cut webtoon.
+      3. After creating the story, you need to create a 4-cut webtoon.
       4. 다음은 이야기 예시야:
         옛날부터 인디언들에게는 말이 무척 중요한 동물이었습니다.
         작은 냇가에 살고 있는 꼬마 인디언의 아빠, 엄마, 누나, 형도 역시 자신의 말을 갖고 있었습니다. 
@@ -83,7 +83,7 @@ def generate_webtoon(scripts):
     return:
     1. img: 생성된 웹툰, 6컷
     '''
-    prompt_webtoon = response_storytelling.choices[0].message.content + "무조건 6컷의 이미지만 있어야 하고, 이미지 안에 어느 텍스트도 없어야해." 
+    prompt_webtoon = response_storytelling.choices[0].message.content + "무조건 4컷의 이미지만 있어야 하고, 이미지 안에 어느 텍스트도 없어야해." 
     # 이미지 생성 및 다운로드(DALL-E사용)
     response_webtoon = openai.Image.create(
         prompt= prompt_webtoon,
