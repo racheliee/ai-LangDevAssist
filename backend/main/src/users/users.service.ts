@@ -249,8 +249,8 @@ export class UsersService {
 
   async getAchievements(userId: string) {
     // TODO: renew achievements
-    this.checkAndCreateAnsRateAchievement(userId);
-    this.checkAndCreateDistinctDaysAchievement(userId);
+    await this.checkAndCreateAnsRateAchievement(userId);
+    await this.checkAndCreateDistinctDaysAchievement(userId);
 
     const userAchievements = await this.prisma.userAchievements.findMany({
       where: { userId: userId },
@@ -266,12 +266,20 @@ export class UsersService {
       },
     });
 
+    // if there are no achievements yet, return an empty array
+    if(!userAchievements || userAchievements.length === 0) {
+      return { highestLevel: 0, achievements: [] };
+    }
+
     const achievements = userAchievements.map((ua) => {
       return {
         achievement: ua.achievement,
         createdAt: ua.createdAt,
       };
     });
+
+    const highestLevel = Math.max(...achievements.map((a) => a.achievement.level));
+
     // console.log(achievements);
     // console.log(userAchievements);
 
@@ -280,7 +288,7 @@ export class UsersService {
     //   where: { id: { in: achievementIds } },
     // });
 
-    return achievements;
+    return { highestLevel, achievements };
   }
 
   async getProgressments(userId: string) {
