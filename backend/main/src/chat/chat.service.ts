@@ -8,7 +8,6 @@ import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import * as FormData from 'form-data';
 import { PrismaService } from '../prisma/prisma.service';
-import { Problems } from '@prisma/client';
 import { AxiosResponse } from 'axios';
 
 @Injectable()
@@ -17,7 +16,7 @@ export class ChatService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
-  ) { }
+  ) {}
   private readonly logger = new Logger(ChatService.name);
 
   async generateProblem(userId: string) {
@@ -28,18 +27,17 @@ export class ChatService {
     const birth = new Date(user.birth);
     const month = Math.abs(
       (cur.getFullYear() - birth.getFullYear()) * 12 +
-      (cur.getMonth() - birth.getMonth()),
+        (cur.getMonth() - birth.getMonth()),
     );
 
-    const problems: Problems[] = await this.prismaService.problems.findMany({
+    const solveHistories = await this.prismaService.solveHistories.findMany({
       where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-      take: 20,
     });
 
-    const answerRate =
-      problems.reduce((acc, cur) => acc + (cur.isCorrect ? 1 : 0), 0) /
-      problems.length;
+    const answerRate = solveHistories.reduce(
+      (acc, cur) => (cur.isCorrect ? acc + 1 : acc),
+      0,
+    );
 
     // check and create achievement
     await this.checkAndCreateAchievement(user.id, answerRate);
@@ -48,7 +46,11 @@ export class ChatService {
     const languageLevel = '초급';
 
     // TODO: feedback 불러오기
-    const parentFeedback = '';
+    const parentFeedback = this.prismaService.parentFeedbacks.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+      select: { feedback: true, createdAt: true },
+    });
 
     const data = {
       userInfo: {
@@ -129,12 +131,13 @@ export class ChatService {
         ),
       );
 
-      await this.prismaService.problems.update({
-        where: { id: problemId },
+      this.prismaService.solveHistories.create({
         data: {
+          userId: user.id,
+          problemId: problemId,
           isCorrect: response.data?.data.is_correct,
-          voicePath: response.data?.data.saved_path,
           feedback: response.data?.data.feedback,
+          voicePath: response.data?.data.voice_path,
         },
       });
 
@@ -149,8 +152,12 @@ export class ChatService {
   criteria:
     1. achieved new highest answer rate (delete the old answer rate achievement)
   */
-    private async checkAndCreateAchievement(userId: string, newAnswerRate: number) {
-      const highestAchievement = await this.prismaService.userAchievements.findFirst({
+  private async checkAndCreateAchievement(
+    userId: string,
+    newAnswerRate: number,
+  ) {
+    const highestAchievement =
+      await this.prismaService.userAchievements.findFirst({
         where: { userId },
         include: {
           achievement: true,
@@ -161,38 +168,46 @@ export class ChatService {
           },
         },
       });
-    
-      if (highestAchievement && newAnswerRate > highestAchievement.achievement.level) {
-        await this.prismaService.userAchievements.deleteMany({
-          where: {
-            userId,
-            achievementId: highestAchievement.achievement.id,
-          },
-        });
-        await this.prismaService.achievements.delete({
-          where: {
-            id: highestAchievement.achievement.id,
-          },
-        });
-      }
-    
-      if (!highestAchievement || newAnswerRate > highestAchievement.achievement.level) {
-        const newAchievement = await this.prismaService.achievements.create({
-          data: {
-            title: 'Highest Answer Rate',
-            description: `Achieved the highest answer rate of ${(newAnswerRate * 100).toFixed(2)}%`,
-            level: newAnswerRate,
-          },
-        });
-    
-        await this.prismaService.userAchievements.create({
-          data: {
-            userId,
-            achievementId: newAchievement.id,
-          },
-        });
-    
-        this.logger.log(`New achievement created for user ${userId}: ${newAchievement.title}`);
-      }
-    }    
+
+    if (
+      highestAchievement &&
+      newAnswerRate > highestAchievement.achievement.level
+    ) {
+      await this.prismaService.userAchievements.deleteMany({
+        where: {
+          userId,
+          achievementId: highestAchievement.achievement.id,
+        },
+      });
+      await this.prismaService.achievements.delete({
+        where: {
+          id: highestAchievement.achievement.id,
+        },
+      });
+    }
+
+    if (
+      !highestAchievement ||
+      newAnswerRate > highestAchievement.achievement.level
+    ) {
+      const newAchievement = await this.prismaService.achievements.create({
+        data: {
+          title: 'Highest Answer Rate',
+          description: `Achieved the highest answer rate of ${(newAnswerRate * 100).toFixed(2)}%`,
+          level: newAnswerRate,
+        },
+      });
+
+      await this.prismaService.userAchievements.create({
+        data: {
+          userId,
+          achievementId: newAchievement.id,
+        },
+      });
+
+      this.logger.log(
+        `New achievement created for user ${userId}: ${newAchievement.title}`,
+      );
+    }
+  }
 }

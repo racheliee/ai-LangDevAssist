@@ -96,15 +96,21 @@ def generate_feedback():
     file.save(audio_path)
     
     sentence, feedback = feedback_generator.analyze_audio_and_provide_feedback(audio_path)
-    rag_feedback = feedback_generator.provide_rag_feedback(rag_chain, feedback)
-    
     is_correct = feedback_generator.is_similar(answer, sentence)
+    
+    ret_feedback = ""
+    if is_correct:
+        ret_feedback = feedback_generator.provide_rag_feedback(rag_chain, feedback)
+    else:
+        img_path = os.path.join(os.path.dirname(__file__), "modules", "static", "images", f"{problemId}.png")
+        encoded_img = base64.b64encode(open(img_path, "rb").read()).decode('utf-8')
+        ret_feedback = feedback_generator.generate_vocab_feedback(encoded_img, answer, sentence)
     
     return jsonify({
         "statusCode": 200,
         "data": {
             "saved_path": audio_path,
-            "feedback": rag_feedback,
+            "feedback": ret_feedback,
             "is_correct": is_correct
         }
     })
