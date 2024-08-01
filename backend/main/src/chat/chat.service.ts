@@ -151,6 +151,7 @@ export class ChatService {
   checks and creates an achievement if the user is eligible
   criteria:
     1. achieved new highest answer rate (update the old achievement's answer rate if needed)
+    2. days of learning
   */
   private async checkAndCreateAchievement(
     userId: string,
@@ -176,8 +177,8 @@ export class ChatService {
         await this.prismaService.achievements.update({
           where: { id: highestAnsRateAchievement.achievement.id },
           data: {
-            title: "Highest Answer Rate",
-            description: `정답률 ${(newAnswerRate * 100).toFixed(2)}% 달성`,
+            title: `정답률 ${(newAnswerRate * 100).toFixed(2)}% 달성`,
+            description: `정답률 최고기록 달성! 주어진 문제의 ${(newAnswerRate * 100).toFixed(2)}% 정답을 맞췄어요.`,
             level: newAnswerRate,
           }
         });
@@ -189,8 +190,8 @@ export class ChatService {
     else {
       const newHighAnsRateAchievement = await this.prismaService.achievements.create({
         data: {
-          title: 'Highest Answer Rate',
-          description: `정답률 ${(newAnswerRate * 100).toFixed(2)}% 달성`,
+          title: `정답률 ${(newAnswerRate * 100).toFixed(2)}% 달성`,
+          description: `정답률 최고기록 달성! 주어진 문제의 ${(newAnswerRate * 100).toFixed(2)}% 정답을 맞췄어요.`,
           level: newAnswerRate,
         }
       });
