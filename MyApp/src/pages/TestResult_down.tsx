@@ -21,7 +21,7 @@ const TestResult_down = () => {
       
         <SafeAreaView style={styles.logo}>
             <Text style = {styles.textlink}>테스트 검사 결과, {"\n"}언어장애로 의심되지 않습니다.{"\n"}
-                언어장애로 의심되는 선택 기준은 12개 이며, {"\n"}자녀분은 {answernum} 개의 항목에 해당됩니다.</Text>   
+                언어장애로 의심되는 선택 기준은 12개 이며, {"\n"}자녀분은 {answernum-1} 개의 항목에 해당됩니다.</Text>   
         </SafeAreaView>
 
       <SafeAreaView style={styles.inputbtn}>

@@ -123,7 +123,7 @@ const ProfileEdit: React.FC = () => {
             </TouchableOpacity> 
        
             <View style={styles.picturepart}>
-                <ImageBackground source={require('../assets/profile_land.png')} style={{width: '100%' , height:216}}>
+                <ImageBackground source={require('../assets/profile_land2.png')} style={{width: '100%' , height:216}}>
                     
 
                 </ImageBackground>

@@ -4,13 +4,15 @@ import Inputbox from '../components/Inputbox';
 import Greenbtn from '../components/Greenbtn';
 import axios from 'axios';
 import * as Keychain from 'react-native-keychain';
-import {useNavigation} from '@react-navigation/native'; 
+import {useNavigation, useRoute} from '@react-navigation/native'; 
 import {RootStackParamList} from '../../App.tsx'; 
 import {StackNavigationProp} from '@react-navigation/stack';
 
 
 const TestResult_up = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+    const route = useRoute();
+    const {answernum} = route.params as { answernum: number };
     return (
     
         <SafeAreaView style={styles.container}>
