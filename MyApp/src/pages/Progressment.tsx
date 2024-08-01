@@ -37,7 +37,7 @@ const Progressment: React.FC = () => {
     return (
       <View style={styles.container}>
         <SafeAreaView style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.navigate('Main')} style={styles.flexitem}>
+          <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.flexitem}>
             <Text style={styles.textlink}>뒤로 가기</Text>
           </TouchableOpacity>
           <View style={styles.flexitem1} />

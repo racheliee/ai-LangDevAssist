@@ -85,10 +85,7 @@ const Progress: React.FC = () => {
         <Image source={require('../assets/profile_1.png')} style={{ width: 100, height: 100 }} />
         <Text style={{ marginTop: 25, fontSize: 19, fontWeight: 'bold' }}>{getdata.data.nickname}</Text>
       </SafeAreaView>
-      <TouchableOpacity style={styles.profilebox}>
-        <Text style={styles.textlink}>떠든 일수</Text>
-        <Text style={[styles.textlink]}>{daydiff}</Text>  
-      </TouchableOpacity>
+      
       <TouchableOpacity style={styles.profilebox} onPress={() => navigation.navigate('Progress')}>
         <Text style={styles.textlink}>최근 떠든날</Text>
         <Text style={[styles.textlink]}>{getdata.data.lastLogin.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit'})}</Text>  
