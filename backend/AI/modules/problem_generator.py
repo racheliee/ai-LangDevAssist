@@ -10,6 +10,7 @@ from langchain.chains import LLMChain
 from langchain_core.prompts import PromptTemplate
 from langchain.output_parsers.json import SimpleJsonOutputParser
 from langchain_core.output_parsers import StrOutputParser
+import os
 
 def remain_korean(input_string):
     # 정규 표현식을 사용하여 한글만 남기기
