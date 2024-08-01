@@ -32,7 +32,7 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
-@app.route('/generate_problem', methods=['POST'])
+@app.route('/chat/generate_problem', methods=['POST'])
 def generate_problem():
     data = request.get_json()
     
@@ -77,7 +77,7 @@ def generate_problem():
         "data": problem
     })
 
-@app.route('/generate_feedback', methods=['POST'])
+@app.route('/chat/generate_feedback', methods=['POST'])
 def generate_feedback():
     print(request.files)
 
@@ -96,15 +96,21 @@ def generate_feedback():
     file.save(audio_path)
     
     sentence, feedback = feedback_generator.analyze_audio_and_provide_feedback(audio_path)
-    rag_feedback = feedback_generator.provide_rag_feedback(rag_chain, feedback)
-    
     is_correct = feedback_generator.is_similar(answer, sentence)
+    
+    ret_feedback = ""
+    if is_correct:
+        ret_feedback = feedback_generator.provide_rag_feedback(rag_chain, feedback)
+    else:
+        img_path = os.path.join(os.path.dirname(__file__), "modules", "static", "images", f"{problemId}.png")
+        encoded_img = base64.b64encode(open(img_path, "rb").read()).decode('utf-8')
+        ret_feedback = feedback_generator.generate_vocab_feedback(encoded_img, answer, sentence)
     
     return jsonify({
         "statusCode": 200,
         "data": {
             "saved_path": audio_path,
-            "feedback": rag_feedback,
+            "feedback": ret_feedback,
             "is_correct": is_correct
         }
     })

@@ -121,19 +121,19 @@ export class UsersService {
   async getProgressments(userId: string) {
     const progressments = await this.prisma.progresses.findMany({
       where: { userId: userId },
-      select: { type: true, progress: true, createdAt: true },
+      select: { total: true, correct: true, createdAt: true },
     });
 
-    const groupedProgresses = progressments.reduce((acc, progress) => {
-      const { type, ...rest } = progress;
-      if (!acc[type]) {
-        acc[type] = [];
-      }
-      acc[type].push(rest);
-      return acc;
-    }, {});
+    const calculatedProgressments = progressments.map((p) => {
+      return {
+        total: p.total,
+        correct: p.correct,
+        createdAt: p.createdAt,
+        accuracy: (p.correct / p.total) * 100,
+      };
+    });
 
-    return groupedProgresses;
+    return calculatedProgressments;
   }
 
   async submitTest(userId: string, testResultData: SubmitTestDto) {
@@ -141,6 +141,15 @@ export class UsersService {
       data: {
         userId: userId,
         result: testResultData.result,
+      },
+    });
+  }
+
+  async submitParentFeedback(userId: string, feedback: string) {
+    return this.prisma.parentFeedbacks.create({
+      data: {
+        userId: userId,
+        feedback,
       },
     });
   }

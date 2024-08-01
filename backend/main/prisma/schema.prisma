@@ -32,6 +32,8 @@ model Users {
   progresses      Progresses[]
   achievements    UserAchievements[]
   problems        Problems[]
+  parentFeedbacks ParentFeedbacks[]
+  solveHistories  SolveHistories[]
 
   @@map("users")
 }
@@ -48,16 +50,23 @@ model TestResults {
   @@map("test_results")
 }
 
-enum TestType {
-  Listening
-  Speaking
+model ParentFeedbacks {
+  id          String   @id @default(cuid())
+  userId      String
+  feedback    String
+  createdAt   DateTime @default(now())
+
+  // Relationships
+  user        Users    @relation(fields: [userId], references: [id])
+
+  @@map("parent_feedback")
 }
 
 model Progresses {
   id        String   @id @default(cuid())
-  type      TestType
   userId    String
-  progress  Int
+  total     Int
+  correct   Int
   createdAt DateTime @default(now())
 
   // Relationships
@@ -98,10 +107,28 @@ model Problems {
   userId      String   
   question     String
   answer      String
-  isCorrect   Boolean?
   imagePath   String
-  voicePath   String?
   wholeText   String
-  feedback    String?
   createdAt   DateTime @default(now())
+
+  // Relationships
+  solveHistories SolveHistories[]
+
+  @@map("problems")
+}
+
+model SolveHistories {
+  id        String   @id @default(cuid())
+  userId    String
+  problemId String
+  isCorrect Boolean
+  feedback  String
+  voicePath String
+  createdAt DateTime @default(now())
+
+  // Relationships
+  user      Users    @relation(fields: [userId], references: [id])
+  problem   Problems @relation(fields: [problemId], references: [id])
+
+  @@map("solve_histories")
 }
