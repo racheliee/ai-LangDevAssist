@@ -92,9 +92,6 @@ def generate_feedback():
     problemId = form.get('problemId')
     answer = form.get('answer')
     
-    logging.debug(file)
-    logging.debug(problemId, answer)
-    
     if file is None or problemId is None or answer is None:
         return jsonify({
             "statusCode": 400,
@@ -117,6 +114,7 @@ def generate_feedback():
     if is_correct:
         ret_feedback = feedback_generator.provide_rag_feedback(rag_chain, feedback)
     elif sentence:
+
         img_path = os.path.join(os.path.dirname(__file__), "modules", "static", "images", f"{problemId}.png")
         encoded_img = base64.b64encode(open(img_path, "rb").read()).decode('utf-8')
         ret_feedback = feedback_generator.generate_vocab_feedback(encoded_img, answer, sentence)
