@@ -45,31 +45,32 @@ def generate_language_diagnosis_question(user_info):
       4. 사용자의 연령에 맞게 문제를 이해하기 쉽게 만들어줘.
       5. 관심 분야 쪽으로 문제를 생성해줘!
       6. 문제가 특정상황을 잘 묘사하고 있어야 돼.
+      7. 문제속에 답안이 포함되어있으면 안돼.
     
     다음은 우수 대답 예시야. 비슷하게 생성해줘.
-      1. **문제 1:** 친구가 웃고 있어요. 친구는 무엇을 하고 있나요?
+      1. 문제 1: 친구가 웃고 있어요. 친구는 무엇을 하고 있나요?
       - A) 물 마시고 있어요.
       - B) 웃고 있어요.
       - C) 자고 있어요.
-      - **정답:** B) 웃고 있어요.
+      - 정답: B) 웃고 있어요.
 
-      2. **문제 2:** 캐릭터가 사과를 들고 있습니다. 사과는 어떤 색이에요?
+      2. 문제 2: 캐릭터가 사과를 들고 있습니다. 사과는 어떤 색이에요?
         - A) 파란색이에요.
         - B) 빨간색이에요.
         - C) 노란색이에요.
-        - **정답:** B) 빨간색이에요.
+        - 정답: B) 빨간색이에요.
 
-      3. **문제 3:** 강아지가 뛰어다니고 있어요. 강아지가 어떤 소리를 낼까요?
+      3. 문제 3: 강아지가 뛰어다니고 있어요. 강아지가 어떤 소리를 낼까요?
         - A) 멍멍!
         - B) 야옹!
         - C) 삐약삐약!
-        - **정답:** A) 멍멍!
+        - 정답: A) 멍멍!
 
-      4. **문제 4:** 친구들이 공원에서 놀고 있어요. 친구는 어떤 장난감을 가지고 놀까요?
+      4. 문제 4: 친구들이 공원에서 놀고 있어요. 친구는 어떤 장난감을 가지고 놀까요?
         - A) 공이에요.
         - B) 나무에요.
         - C) 책이에요.
-        - **정답:** A) 공이에요.
+        - 정답: A) 공이에요.
     ...
     """
     
@@ -88,8 +89,8 @@ def generate_language_diagnosis_question(user_info):
     
     ai_msg = llm.invoke(messages)
     
-    question_pattern = re.compile(r'\*\*문제 \d+:\*\*\s(.*?)\.\s', re.DOTALL)
-    answer_pattern = re.compile(r'\*\*정답:\*\* [A-C]\)\s(.+)')
+    question_pattern = re.compile(r'문제 \d+:\s(.*?)\.\s', re.DOTALL)
+    answer_pattern = re.compile(r'정답: [A-C]\)\s(.+)')
     
     whole_text = ai_msg.content
     question = question_pattern.findall(ai_msg.content)[0]
@@ -99,9 +100,9 @@ def generate_language_diagnosis_question(user_info):
 
 
 def extract_question_with_choices(text):
-    match = re.search(r"\*\*문제 \d+:\*\* (.+?)(\n- .+)+", text, re.DOTALL)
+    match = re.search(r"문제 \d+: (.+?)(\n- .+)+", text, re.DOTALL)
     if match:
-        return match.group(0).split('\n- **정답:')[0]
+        return match.group(0).split('\n- 정답:')[0]
     return None
 
 def generate_image_from_description(description):

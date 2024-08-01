@@ -36,7 +36,8 @@ export class UsersController {
   }
 
   @Post('submitFeedback')
-  async submitFeedback(@Req() req: any, @Body() feedback: string) {
+  async submitFeedback(@Req() req: any, @Body() data: { feedback: string }) {
+    const { feedback } = data;
     const { id } = req.user;
 
     try {
