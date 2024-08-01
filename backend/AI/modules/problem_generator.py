@@ -105,8 +105,11 @@ def generate_language_diagnosis_question(user_info):
     question=remain_korean(problem['문제'])
     following= list(map(remain_korean,problem['선택지']))
     answer=remain_korean(problem['정답'])
-    whole_text= whole_text= question+'\n' + "\n".join(following)
-    question=[remain_korean(problem['문제']),remain_korean(problem['정답'])]
+    whole_text= question+'\n' + "\n".join(following)
+    question=[remain_korean(problem['문제'])+'?',remain_korean(problem['정답'])]
+    # 문제: question[0]
+    # 정답:answer
+    # 전체문장: whole_text
         
     return whole_text, question, answer
 
@@ -136,6 +139,7 @@ def generate_image_from_description(description):
     image_url = DallEAPIWrapper(model='dall-e-3').run(chain.run(f'question:{description[0]}, answer:{description[1]}'))
     image_response = requests.get(image_url)
     img = Image.open(BytesIO(image_response.content))
+
     return img
 
 
