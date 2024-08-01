@@ -8,7 +8,6 @@ import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import * as FormData from 'form-data';
 import { PrismaService } from '../prisma/prisma.service';
-import { AxiosResponse } from 'axios';
 
 @Injectable()
 export class ChatService {
@@ -207,10 +206,35 @@ export class ChatService {
     }
   }
 
-  private async checkProgress(userId: string) {
+  private async checkProgress(userId: string, isCorrect: boolean) {
     const user = await this.prismaService.users.findUnique({
       where: { id: userId },
     });
+
+    const prog = await this.prismaService.progresses.findFirst({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!prog) {
+      return;
+    }
+
+    const cur = new Date();
+    // TODO: 오늘 만들어진 progress가 있는지 확인
+    if (
+      prog.createdAt.getDate() === cur.getDate() &&
+      prog.createdAt.getMonth() === cur.getMonth() &&
+      prog.createdAt.getFullYear() === cur.getFullYear()
+    ) {
+      return await this.prismaService.progresses.update({
+        where: { id: prog.id },
+        data: {
+          correct: isCorrect ? prog.correct + 1 : prog.correct,
+          total: prog.total + 1,
+        },
+      });
+    }
 
     const solveHistories = await this.prismaService.solveHistories.findMany({
       where: { userId: user.id },
