@@ -76,7 +76,7 @@ def generate_webtoon(scripts):
     '''
     generate_webtoon의 scripts을 입력받아, 이를 바탕으로 웹툰을 생성하는 함수이다.
     return:
-    1. img: 생성된 웹툰, 6컷
+    1. img: 생성된 웹툰, 4컷
     '''
     prompt_webtoon = scripts + "무조건 4컷의 이미지만 있어야 하고, 이미지 안에 어느 텍스트도 없어야해." 
     # 이미지 생성 및 다운로드(DALL-E사용)
