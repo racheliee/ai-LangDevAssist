@@ -78,6 +78,7 @@ export class ChatService {
     });
 
     return {
+      problemId: id,
       question,
       image,
     };
