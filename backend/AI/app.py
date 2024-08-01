@@ -96,19 +96,15 @@ def generate_feedback():
     file.save(audio_path)
     
     sentence, feedback = feedback_generator.analyze_audio_and_provide_feedback(audio_path)
-    is_correct = feedback_generator.is_similar(answer, sentence)
+    rag_feedback = feedback_generator.provide_rag_feedback(rag_chain, feedback)
     
-    ret_feedback = ""
-    if is_correct:
-        ret_feedback = feedback_generator.provide_rag_feedback(rag_chain, feedback)
-    else:
-        ret_feedback = feedback_generator.generate_vocab_feedback(audio_path, answer, sentence)
+    is_correct = feedback_generator.is_similar(answer, sentence)
     
     return jsonify({
         "statusCode": 200,
         "data": {
             "saved_path": audio_path,
-            "feedback": ret_feedback,
+            "feedback": rag_feedback,
             "is_correct": is_correct
         }
     })
