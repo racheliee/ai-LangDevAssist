@@ -4,9 +4,10 @@ import { UsersModule } from './users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ChatModule } from './chat/chat.module';
 import { LoggerMiddleware } from 'common/middlewares/logger.middleware';
+import { FeedbackModule } from './feedback/feedback.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, PrismaModule, ChatModule],
+  imports: [AuthModule, UsersModule, PrismaModule, ChatModule, FeedbackModule],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
