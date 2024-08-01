@@ -73,41 +73,42 @@ def generate_language_diagnosis_question(user_info):
       - C) 책이에요.
       - 정답: A) 공이에요.
   ..."""
-)
-   json_parser = SimpleJsonOutputParser()
-
-llm = ChatOpenAI(
-    model="gpt-4o",
-    temperature=0.8,
-    max_tokens=None,
-    timeout=None,
-    max_retries=2,
-)
-
-messages=[
-        {"role": "system", "content": "You are a friendly and helpful Child Language Development Disorder Therapist."},
-        {"role": "user", "content": prompt}
-    ]
-
-
-json_chain = json_prompt | llm | json_parser
-
-result_list = list(json_chain.stream({"question": "생성된 문제와 정답이 뭐야??",
-                                      "age": user_info['age'],
-                                      "languageLevel": user_info['languageLevel'],
-                                      "languageGoals": user_info['languageGoals'],
-                                      "interests": user_info['interests'],
-                                      "accuracy": user_info['accuracy'],
-                                      "feedback": user_info['feedback']}))
-
-
-problem=result_list[-1]
-question=remain_korean(problem['문제'])
-following= list(map(remain_korean,problem['선택지']))
-answer=remain_korean(problem['정답'])
-whole_text= whole_text= question+'\n' + "\n".join(following)
+    )
+       json_parser = SimpleJsonOutputParser()
     
-return whole_text, question, answer
+    llm = ChatOpenAI(
+        model="gpt-4o",
+        temperature=0.8,
+        max_tokens=None,
+        timeout=None,
+        max_retries=2,
+    )
+    
+    messages=[
+            {"role": "system", "content": "You are a friendly and helpful Child Language Development Disorder Therapist."},
+            {"role": "user", "content": prompt}
+        ]
+    
+    
+    json_chain = json_prompt | llm | json_parser
+    
+    result_list = list(json_chain.stream({"question": "생성된 문제와 정답이 뭐야??",
+                                          "age": user_info['age'],
+                                          "languageLevel": user_info['languageLevel'],
+                                          "languageGoals": user_info['languageGoals'],
+                                          "interests": user_info['interests'],
+                                          "accuracy": user_info['accuracy'],
+                                          "feedback": user_info['feedback']}))
+    
+    
+    problem=result_list[-1]
+    question=remain_korean(problem['문제'])
+    following= list(map(remain_korean,problem['선택지']))
+    answer=remain_korean(problem['정답'])
+    whole_text= whole_text= question+'\n' + "\n".join(following)
+    question=[remain_korean(problem['문제']),remain_korean(problem['정답'])]
+        
+    return whole_text, question, answer
 
 
 def extract_question_with_choices(text):
@@ -132,7 +133,7 @@ def generate_image_from_description(description):
     )
     chain = LLMChain(llm=llm, prompt=prompt)
 
-    image_url = DallEAPIWrapper(model='dall-e-3').run(chain.run(f'question:{question}, answer:{answer}'))
+    image_url = DallEAPIWrapper(model='dall-e-3').run(chain.run(f'question:{description[0]}, answer:{description[1]}'))
     image_response = requests.get(image_url)
     img = Image.open(BytesIO(image_response.content))
     return img
