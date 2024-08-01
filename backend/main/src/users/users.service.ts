@@ -133,7 +133,7 @@ export class UsersService {
     // }
 
     // calculate the new answer rate
-    const newAnswerRate = mostRecentProgress.correct / mostRecentProgress.total;
+    const newAnswerRate = mostRecentProgress ? mostRecentProgress.correct / mostRecentProgress.total : 0;
     // console.log(`New Answer Rate: ${newAnswerRate}`);
 
     // if the user already has an achievement on highest accuracy
