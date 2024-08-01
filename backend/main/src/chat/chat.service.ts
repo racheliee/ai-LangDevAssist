@@ -34,10 +34,14 @@ export class ChatService {
       where: { userId: user.id },
     });
 
-    const answerRate = solveHistories.reduce(
+    const correct = solveHistories.reduce(
       (acc, cur) => (cur.isCorrect ? acc + 1 : acc),
       0,
     );
+
+    const total = solveHistories.length;
+
+    const answerRate = total === 0 ? 0 : correct / total;
 
     // check and create achievement
     await this.checkAndCreateAchievement(user.id, answerRate);
@@ -88,14 +92,6 @@ export class ChatService {
       question,
       image,
     };
-  }
-
-  async communicateWithAI(url: string, data: any): Promise<AxiosResponse<any>> {
-    try {
-      return await firstValueFrom(this.httpService.post(url, data));
-    } catch (error) {
-      throw new InternalServerErrorException(error.message);
-    }
   }
 
   async generateFeedback(
@@ -209,5 +205,32 @@ export class ChatService {
         `New achievement created for user ${userId}: ${newAchievement.title}`,
       );
     }
+  }
+
+  private async checkProgress(userId: string) {
+    const user = await this.prismaService.users.findUnique({
+      where: { id: userId },
+    });
+
+    const solveHistories = await this.prismaService.solveHistories.findMany({
+      where: { userId: user.id },
+    });
+
+    const correct = solveHistories.reduce(
+      (acc, cur) => (cur.isCorrect ? acc + 1 : acc),
+      0,
+    );
+
+    const total = solveHistories.length;
+
+    await this.prismaService.progresses.create({
+      data: {
+        userId: user.id,
+        correct,
+        total,
+      },
+    });
+
+    // check and create achievement
   }
 }
