@@ -48,11 +48,7 @@ export class ChatService {
     const languageLevel = '초급';
 
     // TODO: feedback 불러오기
-    const parentFeedback = this.prismaService.feedbacks.findFirst({
-      where: { userId: user.id },
-      select: { content: true },
-      orderBy: { createdAt: 'desc' },
-    });
+    const parentFeedback = '';
 
     const data = {
       userInfo: {

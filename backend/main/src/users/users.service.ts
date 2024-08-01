@@ -144,13 +144,4 @@ export class UsersService {
       },
     });
   }
-
-  async submitFeedback(userId: string, feedback: string) {
-    return this.prisma.feedbacks.create({
-      data: {
-        userId: userId,
-        content: feedback,
-      },
-    });
-  }
 }
