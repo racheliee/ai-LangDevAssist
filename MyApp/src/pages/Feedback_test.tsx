@@ -9,7 +9,7 @@ import Inputbox from '../components/Inputbox.tsx';
 import { getme } from './utils/token.tsx';
 
 
-const Feedback: React.FC = () => {
+const Feedback_test: React.FC = () => {
     axios.defaults.baseURL = 'http://13.125.116.197:8000';
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [feedback, setFeedback] = useState('');
@@ -23,9 +23,16 @@ const Feedback: React.FC = () => {
     };
 
   const handlesubmit = async () => {
-    await axios.post('/feedback', {
-      feedback: feedback,
-    })
+    await axios.post('/users/submitFeedback', 
+        {
+            feedback: feedback
+        },
+        {
+            headers: {
+                'Authorization': 'Bearer your_token_here'
+            }
+        }
+    );
     console.log(feedback);
     setFeedbacknull();
     navigation.navigate('Main');
@@ -65,7 +72,7 @@ const Feedback: React.FC = () => {
                 }}
                 value={feedback}
                 onChangeText={handleChange}
-                    placeholder="피드백을 입력해주세요."
+                    placeholder="AI 상담사가 참고할수 있는 아이의 특징을 적어주세요 ! "
                     
                 />
                 <Greenbtn title="제출" onPress={handlesubmit} />
@@ -106,4 +113,4 @@ const styles = StyleSheet.create({
 
 });
 
-export default Feedback;
+export default Feedback_test;

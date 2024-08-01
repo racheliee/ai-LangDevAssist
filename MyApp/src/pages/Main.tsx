@@ -12,6 +12,7 @@ import * as Keychain from 'react-native-keychain';
 import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 import Tts from 'react-native-tts';
 import { Buffer } from 'buffer';
+import { getme, getTokenFromLocal } from './utils/token.tsx';
 
 
 const Main: React.FC = () => {
@@ -28,32 +29,6 @@ const Main: React.FC = () => {
   const [nickname, setNickname] = useState('');
   const [path, setPath] = useState('');
   
-  const getTokenFromLocal = async () => {
-    try {
-      const value = await AsyncStorage.getItem('Tokens');
-      if (value !== null) {
-        const token = JSON.parse(value);
-        return token.accessToken;
-      } else {
-        return null;
-      }
-    } catch (error: any) {
-      console.log(error.message);
-    }
-  }
-
-  const getme = async () => {
-    console.log(await getTokenFromLocal());
-    
-    const result = await axios.get('/users/me', {
-      headers: {
-        'Authorization': `Bearer ${getTokenFromLocal()}`,
-      }
-    });
-    
-    setNickname(result.data.data.nickname);  
-  }
-
 
   useEffect(() => {
     getme();
@@ -80,7 +55,7 @@ const Main: React.FC = () => {
       await AudioRecorder.prepareRecordingAtPath(path, {
         SampleRate: 22050,
         Channels: 1,
-        AudioQuality: 'Low',
+        AudioQuality: 'High',
         AudioEncoding: 'aac',
         AudioEncodingBitRate: 32000,
         IncludeBase64: true,
@@ -105,11 +80,6 @@ const Main: React.FC = () => {
       const formData = new FormData();
       const token = await getTokenFromLocal();
       
-      // const bufferfile = Buffer.from(path, 'base64');
-      // formData.append('voice', new Blob([bufferfile], { type: 'audio/m4a' }), 'feedback.m4a');
-
-
-  
 
       formData.append('voice', {
         uri: path,
@@ -125,12 +95,12 @@ const Main: React.FC = () => {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
-        
       });
-      
+      console.log('response', response);
     } catch (error) {
-      console.error("여기", error);
+      console.error("여기는 feedback", error);
     }
+    
   };
     
 
@@ -138,11 +108,9 @@ const Main: React.FC = () => {
     try {
       const response = await axios.post('/chat/problem', {
         headers: {
-          'Authorization': `Bearer ${getTokenFromLocal()}`,
+          'Authorization': `${getTokenFromLocal()}`,
         }
       });
-      
-      
       
       setProblemtxt(response.data.data.question);
       setProblemimg(response.data.data.image);
@@ -183,7 +151,7 @@ const Main: React.FC = () => {
             <SafeAreaView style={styles.mainpage}>
             <View style={styles.container}>
               {problemimg ? (
-                 <Image source={{ uri: `data:image/png;base64,${problemimg}` }} style={styles.image} />
+                 <Image source={{ uri: `data:image/png;base64,${problemimg}`}} style={styles.image} />
               ) : (
                 <Text>loading...</Text>
               )}
@@ -227,7 +195,7 @@ const styles = StyleSheet.create({
     image : {
         borderRadius: 20,
         width: 300,
-        height: 250,
+        height: 300,
     }
 
 });

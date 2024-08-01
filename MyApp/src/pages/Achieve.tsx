@@ -25,7 +25,13 @@ const Achieve: React.FC = () => {
   
   const [getdata, setgetdata] = useState<{ data: { nickname: string; birth: Date; createdAt: Date; lastLogin: Date} }>({ data: { nickname: '', birth: new Date() , createdAt: new Date(), lastLogin: new Date()} });
   const [daydiff , setDaydiff] = useState(0);
-
+  const [data, setData] = useState([]);
+  const getAchievement = async () => {
+    const Achieve = await axios.get('/users/achievements');
+    setData(Achieve.data.data);
+    console.log(Achieve.data.data[0]);
+    
+};
 
   useEffect(() => {
     const fetchData = async () => {
@@ -41,8 +47,10 @@ const Achieve: React.FC = () => {
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))+1;
       
       setDaydiff(diffDays);
+      getAchievement();
       
     };
+    
     fetchData();
   }, []);
 
@@ -68,8 +76,17 @@ const Achieve: React.FC = () => {
       </SafeAreaView>
      
       <View style={styles.picturepart}>
-        <ImageBackground source={require('../assets/profile_land.png')} style={{ width: '100%', height: 216 }}>
-        <Circle text="첫 문장 완성" size={75} color="#C2C2C2" top={-300} left={20} />
+      <ImageBackground source={require('../assets/profile_land.png')} style={{ width: '100%', height: 216 }}>
+          {data.map((item: {title: string }, index) => (
+            <Circle 
+              key={index} 
+              text={item.title} 
+              size={75} 
+              color="#C2C2C2" 
+              top={-300 + index * 100} 
+              left={20 + index * 50} 
+            />
+          ))}
         </ImageBackground>
       </View>
     </View>
