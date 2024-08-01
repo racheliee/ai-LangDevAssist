@@ -81,7 +81,7 @@ def generate_language_diagnosis_question(user_info):
       - 정답: A) 공이에요.
   ..."""
     )
-       json_parser = SimpleJsonOutputParser()
+   json_parser = SimpleJsonOutputParser()
     
     llm = ChatOpenAI(
         model="gpt-4o",
