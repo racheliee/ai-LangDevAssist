@@ -72,10 +72,10 @@ def generate_webtoon_script(user_info):
         {"role": "user", "content": prompt_storytelling}
     ]
     
-    scripts = llm.invoke(messages)
-          
+    msg = llm.invoke(messages)
+    scripts = msg.choices[0].message.content
+  
     return scripts
-
 
 def generate_webtoon(scripts):
     '''
