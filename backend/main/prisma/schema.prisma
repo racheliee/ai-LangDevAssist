@@ -71,7 +71,8 @@ model Progresses {
   id        String   @id @default(cuid())
   type      TestType
   userId    String
-  progress  Int
+  count     Int
+  correct   Int
   createdAt DateTime @default(now())
 
   // Relationships
