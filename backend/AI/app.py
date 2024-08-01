@@ -60,6 +60,7 @@ def generate_problem():
         os.makedirs(os.path.dirname(img_path))
 
     img.save(img_path)
+
     # 이미지를 메모리 버퍼에 저장
     img_io = BytesIO()
     img.save(img_io, 'PNG')
@@ -90,6 +91,9 @@ def generate_feedback():
     form = request.form
     problemId = form.get('problemId')
     answer = form.get('answer')
+    
+    logging.debug(file)
+    logging.debug(problemId, answer)
     
     if file is None or problemId is None or answer is None:
         return jsonify({
