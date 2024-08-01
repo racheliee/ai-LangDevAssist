@@ -93,12 +93,15 @@ model Achievements {
 }
 
 model Problems {
-  id          String   @id @default(cuid())
+  id          String   @id
   user        Users    @relation(fields: [userId], references: [id])
   userId      String   
-  
-  content     String
+  question     String
   answer      String
-  voice_path  String?
+  isCorrect   Boolean?
+  imagePath   String
+  voicePath   String?
+  wholeText   String
+  feedback    String?
   createdAt   DateTime @default(now())
 }
