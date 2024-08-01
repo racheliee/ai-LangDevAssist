@@ -144,4 +144,13 @@ export class UsersService {
       },
     });
   }
+
+  async submitParentFeedback(userId: string, feedback: string) {
+    return this.prisma.parentFeedbacks.create({
+      data: {
+        userId: userId,
+        feedback,
+      },
+    });
+  }
 }

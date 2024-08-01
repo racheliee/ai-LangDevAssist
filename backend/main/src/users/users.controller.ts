@@ -35,6 +35,22 @@ export class UsersController {
     }
   }
 
+  @Post('submitFeedback')
+  async submitFeedback(@Req() req: any, @Body() feedback: string) {
+    const { id } = req.user;
+
+    try {
+      return {
+        statusCode: 200,
+        message: 'Successfully submitted feedback',
+        data: await this.usersService.submitParentFeedback(id, feedback),
+      };
+    } catch (error) {
+      this.logger.error(error);
+      throw new BadRequestException('Failed to submit feedback');
+    }
+  }
+
   @Get('achievements')
   async getAchievements(@Req() req: any) {
     const { id } = req.user;
