@@ -54,7 +54,13 @@ def generate_problem():
     whole_text, _question, answer = problem_generator.generate_language_diagnosis_question(userInfo)
     img = problem_generator.generate_image_from_description(_question)
     img_path = os.path.join(os.path.dirname(__file__), "modules", "static", "images", f"{problemId}.png")
+
+    # 이미지 경로가 존재하지 않으면 디렉토리 생성
+    if not os.path.exists(os.path.dirname(img_path)):
+        os.makedirs(os.path.dirname(img_path))
+
     img.save(img_path)
+
     # 이미지를 메모리 버퍼에 저장
     img_io = BytesIO()
     img.save(img_io, 'PNG')
@@ -86,6 +92,9 @@ def generate_feedback():
     problemId = form.get('problemId')
     answer = form.get('answer')
     
+    logging.debug(file)
+    logging.debug(problemId, answer)
+    
     if file is None or problemId is None or answer is None:
         return jsonify({
             "statusCode": 400,
@@ -93,6 +102,8 @@ def generate_feedback():
         })
     
     audio_path = os.path.join(os.path.dirname(__file__), "modules", "static", "audio", f"{problemId}.m4a")
+    if not os.path.exists(os.path.dirname(audio_path)):
+        os.makedirs(os.path.dirname(audio_path))
     file.save(audio_path)
     
     sentence, feedback = feedback_generator.analyze_audio_and_provide_feedback(audio_path)

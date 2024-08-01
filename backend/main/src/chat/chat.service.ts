@@ -42,9 +42,6 @@ export class ChatService {
 
     const answerRate = total === 0 ? 0 : correct / total;
 
-    // check and create achievement
-    await this.checkAndCreateAchievement(user.id, answerRate);
-
     // TODO: 기준표 보고 languageLevel 계산하기
     const languageLevel = '초급';
 
@@ -75,14 +72,16 @@ export class ChatService {
     const { id, question, answer, image, image_path, whole_text } =
       response.data.data;
 
+    this.logger.log(user);
+
     await this.prismaService.problems.create({
       data: {
         id: id,
-        userId: user.id,
         question: question,
         answer: answer,
         imagePath: image_path,
         wholeText: whole_text,
+        user: { connect: { id: user.id } },
       },
     });
 
@@ -144,71 +143,6 @@ export class ChatService {
     }
   }
 
-  /*
-  checks and creates an achievement if the user is eligible
-  criteria:
-    1. achieved new highest answer rate (update the old achievement's answer rate if needed)
-    2. days of learning
-  */
-  private async checkAndCreateAchievement(
-    userId: string,
-    newAnswerRate: number,
-  ) {
-    const highestAnsRateAchievement =
-      await this.prismaService.userAchievements.findFirst({
-        where: { userId },
-        include: {
-          achievement: true,
-        },
-        orderBy: {
-          achievement: {
-            level: 'desc',
-          },
-        },
-      });
-
-    // if the user already has an achievement on highest accuracy
-    if (highestAnsRateAchievement) {
-      // check if the new answer rate is higher than the current
-      if (newAnswerRate > highestAnsRateAchievement.achievement.level) {
-        await this.prismaService.achievements.update({
-          where: { id: highestAnsRateAchievement.achievement.id },
-          data: {
-            title: `정답률 ${(newAnswerRate * 100).toFixed(2)}% 달성`,
-            description: `정답률 최고기록 달성! 주어진 문제의 ${(newAnswerRate * 100).toFixed(2)}% 정답을 맞췄어요.`,
-            level: newAnswerRate,
-          },
-        });
-
-        this.logger.log(
-          `Highest Answer Rate achievement updated for user ${userId} to ${newAnswerRate}`,
-        );
-      }
-    }
-    // no highest answer rate achievement exists => create one
-    else {
-      const newHighAnsRateAchievement =
-        await this.prismaService.achievements.create({
-          data: {
-            title: `정답률 ${(newAnswerRate * 100).toFixed(2)}% 달성`,
-            description: `정답률 최고기록 달성! 주어진 문제의 ${(newAnswerRate * 100).toFixed(2)}% 정답을 맞췄어요.`,
-            level: newAnswerRate,
-          },
-        });
-
-      await this.prismaService.userAchievements.create({
-        data: {
-          userId: userId,
-          achievementId: newHighAnsRateAchievement.id,
-        },
-      });
-
-      this.logger.log(
-        `Highest Answer Rate achievement created for user ${userId} with answer rate ${newAnswerRate}`,
-      );
-    }
-  }
-
   private async checkProgress(userId: string, isCorrect: boolean) {
     const user = await this.prismaService.users.findUnique({
       where: { id: userId },
@@ -224,7 +158,6 @@ export class ChatService {
     }
 
     const cur = new Date();
-    // TODO: 오늘 만들어진 progress가 있는지 확인
     if (
       prog.createdAt.getDate() === cur.getDate() &&
       prog.createdAt.getMonth() === cur.getMonth() &&
@@ -257,7 +190,5 @@ export class ChatService {
         total,
       },
     });
-
-    // check and create achievement
   }
 }
