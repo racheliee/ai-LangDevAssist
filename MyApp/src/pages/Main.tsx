@@ -11,159 +11,128 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Keychain from 'react-native-keychain';
 import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 import Tts from 'react-native-tts';
+import { Buffer } from 'buffer';
+import { getme, getTokenFromLocal } from './utils/token.tsx';
 
 
 const Main: React.FC = () => {
  
   axios.defaults.baseURL = 'http://13.125.116.197:8000';
-
-  // // axios 인스턴스 생성
-  // const apiClient = axios.create({
-  //   baseURL: 'http://13.125.116.197:8000',
-  //   headers: {
-  //     'Content-Type': 'application/json',
-  //   },
-  // });
-
-  // // 요청 인터셉터 설정
-  // apiClient.interceptors.request.use(
-  //   async (config) => {
-  //     const credentials = await Keychain.getGenericPassword();
-  //     if (credentials) {
-  //       console.log('이거쓰냐?');
-  //       config.headers.Authorization = `Bearer ${credentials.password}`;
-  //     } else {
-  //       console.log('No credentials stored');
-  //     }
-  //     return config;
-  //   },
-  //   (error) => {
-  //     return Promise.reject(error);
-  //   }
-  // );
+  const [onlearn, setOnlearn] = useState(false);
+  const [recordedFile, setRecordedFile] = useState('');
+    
+  const [problemtxt, setProblemtxt] = useState('');
+  const [problemimg, setProblemimg] = useState('');
+  const [problemnum, setProblemnum] = useState('');
+  const [feedbacktxt, setFeedbacktxt] = useState('');
+  const [feedback_right, setFeedback_right] = useState(false);
+  const [nickname, setNickname] = useState('');
+  const [path, setPath] = useState('');
+  
 
   useEffect(() => {
     getme();
-    // TTS 이벤트 리스너 등록
-    Tts.setDefaultLanguage('ko-KR');
-    Tts.addEventListener('tts-start', event => console.log('TTS 시작:', event));
-    Tts.addEventListener('tts-progress', event => console.log('TTS 진행:', event));
-    Tts.addEventListener('tts-finish', event => console.log('TTS 완료:', event));
-    Tts.addEventListener('tts-cancel', event => console.log('TTS 취소:', event));
-
-    // 컴포넌트 언마운트 시 이벤트 리스너 제거
-    return () => {
-      Tts.removeEventListener('tts-start', event => console.log('TTS 시작:', event));
-      Tts.removeEventListener('tts-progress', event => console.log('TTS 진행:', event));
-      Tts.removeEventListener('tts-finish', event => console.log('TTS 완료:', event));
-      Tts.removeEventListener('tts-cancel', event => console.log('TTS 취소:', event));
-    };
+    getProblem();
   }, []);
 
-  const [onlearn, setOnlearn] = useState(false);
-  const [recordedFile, setRecordedFile] = useState('');
+
+
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   
-  const [nickname, setNickname] = useState('떠들이');
+  
 
-  const getTokenFromLocal = async () => {
-    try {
-      const value = await AsyncStorage.getItem('Tokens');
-      if (value !== null) {
-        const token = JSON.parse(value);
-        return token.accessToken;
-      } else {
-        return null;
-      }
-    } catch (error: any) {
-      console.log(error.message);
-    }
-  }
-  const getme = async () => {
-    console.log(await getTokenFromLocal());
-    
-    const result = await axios.get('/users/me', {
-      headers: {
-        'Authorization': `Bearer ${getTokenFromLocal()}`,
-      }
-    });
-    
-    setNickname(result.data.data.nickname);  
-  }
+
 
 
 
   const startRecording = async () => {
-    let audioPath = AudioUtils.DocumentDirectoryPath + '/test.m4a';
-    console.log(audioPath);
-    AudioRecorder.prepareRecordingAtPath(audioPath, {
-      SampleRate: 22050,
-      Channels: 1,
-      AudioQuality: 'Low',
-      AudioEncoding: 'aac',
-    });
-    await AudioRecorder.startRecording();
     setOnlearn(true);
+    try {
+      const path = AudioUtils.DocumentDirectoryPath + '/test.m4a';
+      setPath(path);
+      console.log('path', path);
+      await AudioRecorder.prepareRecordingAtPath(path, {
+        SampleRate: 22050,
+        Channels: 1,
+        AudioQuality: 'High',
+        AudioEncoding: 'aac',
+        AudioEncodingBitRate: 32000,
+        IncludeBase64: true,
+      });
+      await AudioRecorder.startRecording();
+    } catch (error) {
+      console.error("여기닷", error);
   };
+};
 
   const stopRecording = async () => {
-    const filePath = await AudioRecorder.stopRecording();
     setOnlearn(false);
-    setRecordedFile(filePath);
-    sendFileToServer(filePath);
+    try{
+      await AudioRecorder.stopRecording();
+    }catch (error) {
+      console.error("여기", error);
+    }
   };
 
+  const sendFeedback = async () => {
+    try {
+      const formData = new FormData();
+      const token = await getTokenFromLocal();
+      
 
-  const sendFileToServer = (filePath : any) => {
-    const formData = new FormData();
-    formData.append('file', {
-      uri: filePath,
-      type: 'audio/m4a',
-      name: 'test.m4a',
-    });
-    axios.post('http://13.125.116.197:8000', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    }).then(response => {
-      console.log('File uploaded successfully', response);
-    }).catch(error => {
-      console.log('File upload failed', error);
-    });
+      formData.append('voice', {
+        uri: path,
+        type: 'audio/m4a',
+        name: 'feedback.m4a',
+      });
+      
+      formData.append('problemId', problemnum);
+      console.log("pidd", problemnum)
+      console.log('path', formData.getAll('problemId'));
+
+      const response = await axios.post('/chat/feedback', formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      console.log('response', response);
+    } catch (error) {
+      console.error("여기는 feedback", error);
+    }
+    
   };
+    
 
+ const getProblem = async () => {
+    try {
+      const response = await axios.post('/chat/problem', {
+        headers: {
+          'Authorization': `${getTokenFromLocal()}`,
+        }
+      });
+      
+      setProblemtxt(response.data.data.question);
+      setProblemimg(response.data.data.image);
+      setProblemnum(response.data.data.problemId);
+      
+    } catch (error) {
+      console.error("여기", error);
+    }
+  }
+ 
 
   const handleLearn = () => {
     if (onlearn) {
         stopRecording();
-        handlespeak();
+        sendFeedback();
       } else {
         startRecording();
       }
   };
 
-  const [base64Image, setBase64Image] = useState('');
-  const [text, setText] = useState('안녕하세요 떠들이입니다.');
 
-
-    const responsedata = async () => {
-      const token = await getTokenFromLocal();
-      try{
-      const resdata = await axios.post('/problems', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      console.log(resdata);
-      setBase64Image(data.data.image);//모름
-      setText(data.data.text);//모름
-    } catch(error){
-      console.log(error);
-    }
-    };
-
-    const handlespeak = () => {
+    const handlespeak = (text: string) => {
       if(text){
         Tts.speak(text);
       }
@@ -181,13 +150,10 @@ const Main: React.FC = () => {
             </SafeAreaView>
             <SafeAreaView style={styles.mainpage}>
             <View style={styles.container}>
-              {base64Image ? (
-                <Image
-                  style={styles.image}
-                  source={{ uri: base64Image }}
-                />
+              {problemimg ? (
+                 <Image source={{ uri: `data:image/png;base64,${problemimg}`}} style={styles.image} />
               ) : (
-                <Text></Text>
+                <Text>loading...</Text>
               )}
             </View> 
             </SafeAreaView>
@@ -229,7 +195,7 @@ const styles = StyleSheet.create({
     image : {
         borderRadius: 20,
         width: 300,
-        height: 250,
+        height: 300,
     }
 
 });

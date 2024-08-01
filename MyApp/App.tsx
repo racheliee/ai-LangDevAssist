@@ -15,6 +15,7 @@ import Feedback from './src/pages/Feedback';
 import Progress from './src/pages/Progress';
 import Progressment from './src/pages/Progressment';
 import Achieve from './src/pages/Achieve';
+import Feedback_test from './src/pages/Feedback_test';
 
 // App.tsx 파일 내에서 스택 네비게이터의 파라미터 타입을 정의
 export type RootStackParamList = {
@@ -31,7 +32,7 @@ export type RootStackParamList = {
   Progress: undefined;
   Progressment: undefined;
   Achieve: undefined;
-  
+  Feedback_test: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -54,6 +55,7 @@ function App() {
         <Stack.Screen name="Progress" component={Progress} options={{headerShown:false}} />
         <Stack.Screen name="Progressment" component={Progressment} options={{headerShown:false}} />
         <Stack.Screen name="Achieve" component={Achieve} options={{headerShown:false}} />
+        <Stack.Screen name="Feedback_test" component={Feedback_test} options={{headerShown:false}} />
       </Stack.Navigator>
     </NavigationContainer>
   );

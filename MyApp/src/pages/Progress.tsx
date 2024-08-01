@@ -96,7 +96,7 @@ const Progress: React.FC = () => {
       <TouchableOpacity style={styles.profilebox} onPress={() => navigation.navigate('Achieve')}>
         <Text style={styles.textlink}>내 성취도</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.profilebox} onPress={() => navigation.navigate('Progessment')}>
+      <TouchableOpacity style={styles.profilebox} onPress={() => navigation.navigate('Progressment')}>
         <Text style={styles.textlink}>내 발전도</Text>
       </TouchableOpacity>
       <View style={styles.picturepart}>

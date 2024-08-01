@@ -22,7 +22,7 @@ const TestResult_up = () => {
     
           <SafeAreaView style={styles.inputbtn}>
     
-          <Greenbtn title="떠들러 가기" onPress={() => navigation.navigate('Main')} />
+          <Greenbtn title="떠들러 가기" onPress={() => navigation.navigate('Feedback_test')} />
     
           </SafeAreaView>
           <SafeAreaView style ={styles.nav}>

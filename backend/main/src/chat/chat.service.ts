@@ -8,7 +8,6 @@ import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import * as FormData from 'form-data';
 import { PrismaService } from '../prisma/prisma.service';
-import { AxiosResponse } from 'axios';
 
 @Injectable()
 export class ChatService {
@@ -16,7 +15,7 @@ export class ChatService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
-  ) { }
+  ) {}
   private readonly logger = new Logger(ChatService.name);
 
   async generateProblem(userId: string) {
@@ -27,17 +26,24 @@ export class ChatService {
     const birth = new Date(user.birth);
     const month = Math.abs(
       (cur.getFullYear() - birth.getFullYear()) * 12 +
-      (cur.getMonth() - birth.getMonth()),
+        (cur.getMonth() - birth.getMonth()),
     );
 
     const solveHistories = await this.prismaService.solveHistories.findMany({
       where: { userId: user.id },
     });
 
-    const answerRate = solveHistories.reduce(
+    const correct = solveHistories.reduce(
       (acc, cur) => (cur.isCorrect ? acc + 1 : acc),
       0,
     );
+
+    const total = solveHistories.length;
+
+    const answerRate = total === 0 ? 0 : correct / total;
+
+    // check and create achievement
+    await this.checkAndCreateAchievement(user.id, answerRate);
 
     // TODO: 기준표 보고 languageLevel 계산하기
     const languageLevel = '초급';
@@ -87,14 +93,6 @@ export class ChatService {
     };
   }
 
-  async communicateWithAI(url: string, data: any): Promise<AxiosResponse<any>> {
-    try {
-      return await firstValueFrom(this.httpService.post(url, data));
-    } catch (error) {
-      throw new InternalServerErrorException(error.message);
-    }
-  }
-
   async generateFeedback(
     problemId: string,
     user: any,
@@ -122,12 +120,13 @@ export class ChatService {
       const response = await firstValueFrom(
         this.httpService.post(
           this.configService.get<string>('AI_SERVER_URL') +
-          '/chat/generate_feedback',
+            '/chat/generate_feedback',
           form,
           { headers },
         ),
       );
 
+      this.logger.log(response.data);
       this.prismaService.solveHistories.create({
         data: {
           userId: user.id,
@@ -138,6 +137,7 @@ export class ChatService {
         },
       });
 
+      this.checkProgress(user.id, response.data?.data.is_correct);
       return response.data.data;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
