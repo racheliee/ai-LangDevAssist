@@ -15,6 +15,8 @@ const Inputbox : React.FC<TextInputProps> = (props) => {
 // 기존 스타일을 재사용하거나 새로운 스타일을 정의
 const styles = StyleSheet.create({
   input: {
+    fontSize: 17,
+    fontWeight: 800,
     width: '82%',
     height:56,
     margin: 10,

@@ -7,6 +7,7 @@ import * as Keychain from 'react-native-keychain';
 import {useNavigation} from '@react-navigation/native'; 
 import {RootStackParamList} from '../../App.tsx'; 
 import {StackNavigationProp} from '@react-navigation/stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const Test = () => {
@@ -32,6 +33,30 @@ const Test = () => {
     "아이가 하는 말을 잘 못알아 듣는다.",
     "더듬거리며 말을 한다."
   ];
+  axios.defaults.baseURL = 'http://13.125.116.197:8000';
+
+  // axios 인스턴스 생성
+  const apiClient = axios.create({
+    baseURL: 'http://13.125.116.197:8000',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  // 요청 인터셉터 설정
+  apiClient.interceptors.request.use(
+    async (config) => {
+      const credentials = await Keychain.getGenericPassword();
+      if (credentials) {
+        config.headers.Authorization = `Bearer ${credentials.password}`;
+      }
+      return config;
+    },
+    (error) => {
+      return Promise.reject(error);
+    }
+  );
+
 
   const [answernum , setAnswernum] = useState(0);
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
@@ -39,20 +64,34 @@ const Test = () => {
 
   const handleTest = async () => {
     if(answernum >= 12)
-      navigation.navigate('TestResult_up'); // Test
+      navigation.navigate('TestResult_up',{answernum}); 
+      
     else
-      navigation.navigate('TestResult_down'); // Test
-    console.log(answernum);
+      navigation.navigate('TestResult_down',{answernum}); 
+      console.log(answernum);
     try {
-      const response = await axios.post('/user/submitTest', {
-        score : answernum,
+      const response = await apiClient.post('/users/submitTest', {
+        result: answernum,
       });
       console.log(response.data);
       
-      if(response.data === 'success'){
+      if(response.data.statusCode === 200){
+        console.log("테스트 결과가 성공적으로 제출되었습니다.");
+        const refresh = await axios.post('/auth/refresh');
+        if(refresh.status = 200){
+          await AsyncStorage.setItem('Tokens', JSON.stringify({
+            'accessToken': refresh.data.data.access_token,
+          }))
+        }
+        else{
+          console.log("토큰 재발급 에러. 다시 시도해주세요.");
+        }
+        await Keychain.setGenericPassword('userToken', refresh.data.data.access_token);
+        console.log('response.data.accessToken', refresh.data.data.access_token);
+        console.log('refresh.data.data.lastLogin', refresh.data);
       }
       else{
-        console.log("error");
+        console.log("예상치못한 에러가 발생했습니다. 다시 시도해주세요.");
       }      
 
     } catch (error) {

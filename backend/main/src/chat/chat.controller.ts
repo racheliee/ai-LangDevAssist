@@ -24,15 +24,15 @@ export class ChatController {
     const { user } = req;
 
     try {
-      const problem = await this.chatService.generateProblem(user);
+      const problem = await this.chatService.generateProblem(user.id);
       return {
         statusCode: 200,
         message: 'Successfully generated problem',
         data: problem,
       };
     } catch (error) {
-      this.logger.error(error.message);
-      throw new InternalServerErrorException(error.message);
+      this.logger.error(error);
+      throw error;
     }
   }
 
@@ -46,6 +46,9 @@ export class ChatController {
     const { problemId } = body;
     const { user } = req;
 
+    this.logger.log(body);
+
+    this.logger.log(`Generating feedback for problemId: ${problemId}`);
     try {
       const feedback = await this.chatService.generateFeedback(
         problemId,

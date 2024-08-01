@@ -10,7 +10,21 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
+import os
+from langchain_core.messages import HumanMessage
+from google.api_core.exceptions import InternalServerError, ResourceExhausted
+import time
+import logging
 
+openai_api_key = os.getenv("OPENAI_API_KEY").strip("'")
+google_api_key = os.getenv("GOOGLE_API_KEY").strip("'")
+if not openai_api_key:
+    raise ValueError("API key not found. Please set the OPENAI_API_KEY environment variable.")
+if not google_api_key:
+    raise ValueError("API key not found. Please set the GOOGLE_API_KEY environment variable.")
+
+ChatOpenAI.api_key = openai_api_key
+genai.configure(api_key=google_api_key)
 
 def analyze_audio_and_provide_feedback(audio_path):
     '''
@@ -20,31 +34,50 @@ def analyze_audio_and_provide_feedback(audio_path):
     2. feedback: 유저의 발음 피드백
     '''
     model = genai.GenerativeModel('models/gemini-1.5-pro-latest')
-    file = genai.upload_file(path=audio_path)
-    response = model.generate_content(['''뭐라고 말하고 있어요? 또, 이 음성의 발음이 어때요? 부족한 부분이 있으면 형식에 따라 쉽고 자세히 알려주세요.
-                                       (이모티콘 제외)
-                                        예시형식 1:
-                                        [문장:파랑색이에요, 피드백:'파랑'발음에 대한 피드백]
-                                       
-                                        예시형식 2:
-                                        [문장:삐약삐약, 피드백: '삐약'발음에 대한 피드백]
-                                       
-                                        예시형식 3:
-                                        [문장:걷고있어요, 피드백:'걷고'발음에 대한 피드백]
-                                       
-                                       ''', file])
+    file = genai.upload_file(path=audio_path, mime_type='audio/m4a')
+    
+    max_retries = 20
+    retry_count = 0
+    delay = 10
+    response = None
+    while retry_count < max_retries and not response:
+        try:
+            response = model.generate_content(['''뭐라고 말하고 있어요? 또, 이 음성의 발음이 어때요? 부족한 부분이 있으면 형식에 따라 쉽고 자세히 알려주세요.
+                                    (이모티콘 제외)
+                                    예시형식 1:
+                                    [문장:파랑색이에요, 피드백:'파랑'발음에 대한 피드백]
+                                    
+                                    예시형식 2:
+                                    [문장:삐약삐약, 피드백: '삐약'발음에 대한 피드백]
+                                    
+                                    예시형식 3:
+                                    [문장:걷고있어요, 피드백:'걷고'발음에 대한 피드백]
+                                    
+                                    ''', file])
+
+        except ResourceExhausted or InternalServerError as e:
+            logging.error(e)
+            time.sleep(delay)
+            retry_count += 1
+            
+    if retry_count == max_retries:
+        raise ResourceExhausted
     
     feedbacks = response.text
     
-    sentence_pattern = re.compile(r"문장:\s*(.*?),\s*피드백:")
-    feedback_pattern = re.compile(r"피드백:\s*(.*)]", re.DOTALL)
-    
-    sentence_match = sentence_pattern.search(feedbacks)
-    feedback_match = feedback_pattern.search(feedbacks)
-    
-    sentence = sentence_match.group(1)
-    feedback = feedback_match.group(1)
-    
+    try:    
+        sentence_pattern = re.compile(r"문장:\s*(.*?),\s*피드백:")
+        feedback_pattern = re.compile(r"피드백:\s*(.*)]", re.DOTALL)
+        
+        sentence_match = sentence_pattern.search(feedbacks)
+        feedback_match = feedback_pattern.search(feedbacks)
+        
+        sentence = sentence_match.group(1)
+        feedback = feedback_match.group(1)
+    except:
+        sentence = None
+        feedback = feedbacks
+        
     return sentence, feedback
 
 
@@ -94,7 +127,7 @@ def create_rag_chain(pdf_path):
     
     return rag_chain
 
-def is_similar(answer, sentence, threshold=0.8):
+def is_similar(answer, sentence, threshold=0.5):
     """
     유저가 말한 문장과 정답이 유사한지 확인하는 함수
     return:
@@ -109,3 +142,40 @@ def provide_rag_feedback(rag_chain, feedback):
     RAG 체인을 이용해 피드백을 보충하는 함수
     '''
     return rag_chain.invoke(feedback)
+
+def generate_vocab_feedback(image_data, answer, sentence):
+    """
+    사용자가 제공한 답변 및 이미지를 바탕으로 간접적인 피드백을 생성합니다.
+
+    Parameters:
+        image_url (str): 이미지 URL
+        answer (str): 정답
+        sentence (str): 사용자가 제공한 문장
+
+    Returns:
+        str: 생성된 피드백
+    """
+    # 이미지 데이터를 가져와 base64로 인코딩
+
+    # HumanMessage 생성
+    message = HumanMessage(
+        content=[
+            {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{image_data}"}},
+            {"type": "text", 
+             "text": f'''
+                        The user was asked to describe an image for {answer}, 
+                        but they provided {sentence} as an answer. 
+                        Provide feedback indirectly to help them get the right answer, {answer}. 
+                        Explain why it's not a {sentence} as indirectly as possible.
+                        {answer} should not be mentioned.
+                        Exclude information that is not relevant to {answer}.
+                        Please answer in Korean.
+                      '''}
+        ],
+    )
+
+    # ChatOpenAI 모델을 초기화하고 피드백 생성
+    model = ChatOpenAI(model="gpt-4o")
+    vocab_feedback = model.invoke([message]).content
+
+    return vocab_feedback

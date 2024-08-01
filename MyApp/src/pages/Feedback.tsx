@@ -6,16 +6,45 @@ import {RootStackParamList} from '../../App.tsx';
 import {StackNavigationProp} from '@react-navigation/stack';
 import Greenbtn from '../components/Greenbtn';
 import Inputbox from '../components/Inputbox.tsx';
+import { getme } from './utils/token.tsx';
 
 
 const Feedback: React.FC = () => {
-
+    axios.defaults.baseURL = 'http://13.125.116.197:8000';
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const [feedback, setFeedback] = useState('');
+  const setFeedbacknull = () => {
+    setFeedback('');
+  };
+
+    const handleChange = (value: string) => {
+        setFeedback(value);
+        console.log(feedback);
+    };
+
+  const handlesubmit = async () => {
+    await axios.post('/feedback', {
+      feedback: feedback,
+    })
+    console.log(feedback);
+    setFeedbacknull();
+    navigation.navigate('Main');
+    };
+    const [nickname, setNickname] = useState('');
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const data = await getme();
+            console.log(data);
+            setNickname(data.data.nickname);
+        };
+        fetchData();
+    }, []);
 
     return (
         <SafeAreaView style={styles.container}>
             <SafeAreaView style={styles.profilebtn}>
-                <Greenbtn style={{width : 50, height:50}}title="이" onPress={() => navigation.navigate('Profile')}/>
+                <Greenbtn style={{width : 50, height:50}} title={nickname.charAt(0)} onPress={() => navigation.navigate('Profile')}/>
             </SafeAreaView>
             <SafeAreaView style={styles.mainpage}>
                 <Inputbox
@@ -31,12 +60,15 @@ const Feedback: React.FC = () => {
                     fontSize: 24,
                     fontWeight: 200,
                     padding: 15,
+                
                     
                 }}
+                value={feedback}
+                onChangeText={handleChange}
                     placeholder="피드백을 입력해주세요."
                     
                 />
-                <Greenbtn title="제출" onPress={() => navigation.navigate('Main')} />
+                <Greenbtn title="제출" onPress={handlesubmit} />
             </SafeAreaView>
             
         </SafeAreaView>
@@ -71,6 +103,7 @@ const styles = StyleSheet.create({
         width: '100%',
         flex: 5,
     }
+
 });
 
 export default Feedback;

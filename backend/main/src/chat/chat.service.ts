@@ -1,13 +1,13 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import * as FormData from 'form-data';
-import { Express } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
-import { GeneratedFeedbackDTO } from './dto/feedback.dto';
-import { Problems, Users } from '@prisma/client';
-import { GeneratedProblemDTO } from './dto/problem.dto';
 
 @Injectable()
 export class ChatService {
@@ -16,70 +16,93 @@ export class ChatService {
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
   ) {}
+  private readonly logger = new Logger(ChatService.name);
 
-  async generateProblem(user: Users) {
-    try {
-      const cur = new Date();
-      const birth = new Date(user.birth);
-      const month = Math.abs(
-        (cur.getFullYear() - birth.getFullYear()) * 12 +
-          (cur.getMonth() - birth.getMonth()),
-      );
+  async generateProblem(userId: string) {
+    this.logger.log(userId);
+    const user = await this.prismaService.users.findUnique({
+      where: { id: userId },
+    });
+    const cur = new Date();
+    const birth = new Date(user.birth);
+    const month = Math.abs(
+      (cur.getFullYear() - birth.getFullYear()) * 12 +
+        (cur.getMonth() - birth.getMonth()),
+    );
 
-      const problems: Problems[] = await this.prismaService.problems.findMany({
-        where: { userId: user.id },
-        orderBy: { createdAt: 'desc' },
-        take: 20,
-      });
+    const solveHistories = await this.prismaService.solveHistories.findMany({
+      where: { userId: user.id },
+    });
 
-      const answerRate =
-        problems.reduce((acc, cur) => acc + (cur.isCorrect ? 1 : 0), 0) /
-        problems.length;
+    const correct = solveHistories.reduce(
+      (acc, cur) => (cur.isCorrect ? acc + 1 : acc),
+      0,
+    );
 
-      // TODO: 기준표 보고 languageLevel 계산하기
-      const languageLevel = '초급';
+    const total = solveHistories.length;
 
-      // TODO: feedback 불러오기
-      const parentFeedback = '';
+    const answerRate = total === 0 ? 0 : correct / total;
 
-      const userInfo = {
+    // TODO: 기준표 보고 languageLevel 계산하기
+    const languageLevel = '초급';
+
+    // TODO: feedback 불러오기
+    const parentFeedback = this.prismaService.parentFeedbacks.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+      select: { feedback: true, createdAt: true },
+    });
+
+    const data = {
+      userInfo: {
         age: month,
         accuracy: answerRate,
         interests: user.interest,
-        language_level: languageLevel,
+        languageLevel: languageLevel,
+        languageGoals: null,
         feedback: parentFeedback,
-      };
+      },
+    };
 
-      const response: { data: GeneratedProblemDTO } = await firstValueFrom(
-        this.httpService.post(
-          this.configService.get<string>('AI_SERVER_URL') + '/generate_problem',
-          {
-            userInfo: userInfo,
-          },
-        ),
-      );
-
-      const { id, question, answer, image, image_path, whole_text } =
-        response.data;
-
-      await this.prismaService.problems.create({
+    let response = {
+      data: {
         data: {
-          id: id,
-          userId: user.id,
-          question: question,
-          answer: answer,
-          imagePath: image_path,
-          wholeText: whole_text,
+          id: null,
+          question: null,
+          answer: null,
+          image: null,
+          image_path: null,
+          whole_text: null,
         },
-      });
+      },
+    };
+    response.data.data;
+    while (!response.data.data.question) {
+      const url =
+        this.configService.get<string>('AI_SERVER_URL') +
+        '/chat/generate_problem';
 
-      return {
-        question,
-        image,
-      };
-    } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      response = await firstValueFrom(this.httpService.post(url, data));
     }
+    const { id, question, answer, image, image_path, whole_text } =
+      response.data.data;
+
+    await this.prismaService.problems.create({
+      data: {
+        id: id,
+        question: question,
+        answer: answer,
+        imagePath: image_path,
+        wholeText: whole_text,
+        user: { connect: { id: user.id } },
+      },
+    });
+
+    return {
+      problemId: id,
+      question,
+      image,
+    };
   }
 
   async generateFeedback(
@@ -106,19 +129,79 @@ export class ChatService {
     };
 
     try {
-      console.log('Sending request to AI server');
-      const response: { data: GeneratedFeedbackDTO } = await firstValueFrom(
+      const response = await firstValueFrom(
         this.httpService.post(
           this.configService.get<string>('AI_SERVER_URL') +
-            '/generate_feedback',
+            '/chat/generate_feedback',
           form,
           { headers },
         ),
       );
-      console.log(response.data);
-      return response.data;
+
+      this.logger.log(response.data);
+      await this.prismaService.solveHistories.create({
+        data: {
+          userId: user.id,
+          problemId: problemId,
+          isCorrect: response.data?.data.is_correct,
+          feedback: response.data?.data.feedback,
+          voicePath: response.data?.data.voice_path,
+        },
+      });
+
+      this.checkProgress(user.id, response.data?.data.is_correct);
+      return response.data.data;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
+  }
+
+  private async checkProgress(userId: string, isCorrect: boolean) {
+    const user = await this.prismaService.users.findUnique({
+      where: { id: userId },
+    });
+
+    const prog = await this.prismaService.progresses.findFirst({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!prog) {
+      return;
+    }
+
+    const cur = new Date();
+    if (
+      prog.createdAt.getDate() === cur.getDate() &&
+      prog.createdAt.getMonth() === cur.getMonth() &&
+      prog.createdAt.getFullYear() === cur.getFullYear()
+    ) {
+      return await this.prismaService.progresses.update({
+        where: { id: prog.id },
+        data: {
+          correct: isCorrect ? prog.correct + 1 : prog.correct,
+          total: prog.total + 1,
+        },
+      });
+    }
+
+    const solveHistories = await this.prismaService.solveHistories.findMany({
+      where: { userId: user.id },
+    });
+
+    const correct = solveHistories.reduce(
+      (acc, cur) => (cur.isCorrect ? acc + 1 : acc),
+      0,
+    );
+
+    const total = solveHistories.length;
+
+    await this.prismaService.progresses.create({
+      data: {
+        userId: user.id,
+        correct,
+        total,
+      },
+    });
   }
 }

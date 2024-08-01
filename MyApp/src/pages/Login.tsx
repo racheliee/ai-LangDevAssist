@@ -3,28 +3,75 @@ import {SafeAreaView, StyleSheet, TextInput, Button, Text, Alert, Touchable, Tou
 import Inputbox from '../components/Inputbox';
 import Greenbtn from '../components/Greenbtn';
 import axios from 'axios';
-import * as Keychain from 'react-native-keychain';
+// import * as Keychain from 'react-native-keychain';
 import {useNavigation} from '@react-navigation/native'; 
 import {RootStackParamList} from '../../App.tsx';
-import {StackNavigationProp} from '@react-navigation/stack';
+import {Header, StackNavigationProp} from '@react-navigation/stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// axios 인스턴스 생성
+// const apiClient = axios.create({
+//   baseURL: 'http://13.125.116.197:8000',
+//   headers: {
+//     'Content-Type': 'application/json',
+//   },
+// });
+
+// 요청 인터셉터 설정
+// apiClient.interceptors.request.use(
+//   async (config) => {
+//     const credentials = await Keychain.getGenericPassword();
+//     if (credentials) {
+//       config.headers.Authorization = `Bearer ${credentials.password}`;
+//     }
+//     return config;
+//   },
+//   (error) => {
+//     return Promise.reject(error);
+//   }
+// );
 const Login = () => {
-  const [id, setId] = useState('');
+  axios.defaults.baseURL = 'http://13.125.116.197:8000';
+  const [loginId, setId] = useState('');
   const [password, setPassword] = useState('');
+  const loginData = {
+    loginId: loginId,
+    password: password,
+  };
+
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const handleLogin = async () => {
-    navigation.navigate('Main'); // 임시
-    console.log(id);
-    console.log(password);
+    
     try {
-      const response = await axios.post('/auth/login', {
-        // 요청 본문에 들어갈 데이터
-        id: '사용자ID',
-        password: '비밀번호',
-      });
-      console.log(response.data);
-      await Keychain.setGenericPassword('userToken', response.data.accessToken);
-      // navigation.navigate('Main');
+      const response = await axios.post('/auth/signin', loginData);
+      if(response.status = 200){
+        await AsyncStorage.setItem('Tokens', JSON.stringify({
+          'accessToken': response.data.data.access_token,
+          'refreshToken': response.data.data.refresh_token,
+        }))
+      }
+      // await Keychain.setGenericPassword('userToken', response.data.data.access_token);
+      const token = await AsyncStorage.getItem('Tokens');
+      if (!token) {
+        return;
+      }
+      const JS = JSON.parse(token);
+      console.log('token', JS);
+      
+      if (response.data.data.access_token) {
+        const firstlogin = await axios.get('/users/me', {
+          headers: {
+            'Authorization': `Bearer ${response.data.data.access_token}`,
+          }
+        });
+        if(firstlogin.data.data.lastLogin == (undefined || null)){
+          navigation.navigate('Test');
+        }
+        else
+          navigation.navigate('Main');
+      } else {
+        Alert.alert('아이디 또는 비밀번호가 일치하지 않습니다.');
+      }
     } catch (error) {
       console.error(error);
     }
@@ -48,14 +95,16 @@ const Login = () => {
       <SafeAreaView style={styles.inputbtn}>
         <Inputbox
           placeholder="아이디"
-          value={id}
+          value={loginId}
           onChangeText={setId}
+          autoCapitalize='none'
         />
         <Inputbox
           placeholder="비밀번호"
           secureTextEntry
           value={password}
           onChangeText={setPassword}
+          autoCapitalize='none'
         />
         <Greenbtn title="로그인" onPress={handleLogin}/>
         <TouchableOpacity onPress={gofind}>

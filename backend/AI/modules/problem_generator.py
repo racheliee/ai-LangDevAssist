@@ -17,6 +17,12 @@ def remain_korean(input_string):
     korean_only = korean_only.lstrip()
     return korean_only
 
+api_key = os.getenv("OPENAI_API_KEY").strip("'")
+if not api_key:
+  raise ValueError("API key not found. Please set the OPENAI_API_KEY environment variable.")
+
+OpenAI.api_key = api_key
+ChatOpenAI.api_key = api_key
 
 def generate_language_diagnosis_question(user_info):
     '''
@@ -28,6 +34,7 @@ def generate_language_diagnosis_question(user_info):
     '''
     json_prompt = PromptTemplate.from_template("""
     Return a JSON object with `문제` and `정답` key that answers the following question: {question}
+
     사용자 정보:
   - 연령: {age}개월
   - 언어 발달 수준: {languageLevel}
@@ -115,10 +122,17 @@ def generate_language_diagnosis_question(user_info):
 
 
 def extract_question_with_choices(text):
-    match = re.search(r"\*\*문제 \d+:\*\* (.+?)(\n- .+)+", text, re.DOTALL)
-    if match:
-        return match.group(0).split('\n- **정답:')[0]
-    return None
+  pattern = re.compile(r"문제 1:.*?(?=정답)", re.DOTALL)
+  match = pattern.search(text)
+
+  if match:
+      question_text = match.group().strip()
+      print(question_text)
+      return question_text
+  else:
+      print("문제를 찾을 수 없습니다.")
+      return None
+
 
 def generate_image_from_description(description):
     '''
@@ -127,6 +141,7 @@ def generate_image_from_description(description):
     1. img: 생성된 이미지
     '''
     llm = OpenAI(temperature=0.8)
+
     prompt = PromptTemplate(
         input_variables=["image_desc"],
         template='''Topic:{image_desc}. I want to create a picture that matches the topic 100%. 
