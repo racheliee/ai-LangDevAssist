@@ -1,9 +1,17 @@
+// import { ConflictException, Injectable, Logger } from '@nestjs/common';
+// import { Users } from '@prisma/client';
+// import { PrismaService } from 'src/prisma/prisma.service';
+// import * as bcrypt from 'bcrypt';
+// import { ConfigService } from '@nestjs/config';
+// import { SignUpDTO } from 'src/auth/dto/sign-up.dto';
+// import { SubmitTestDto } from './dto/submit-test.dto';
+
 import { ConflictException, Injectable, Logger } from '@nestjs/common';
 import { Users } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
-import { SignUpDTO } from 'src/auth/dto/sign-up.dto';
+import { SignUpDTO } from '../auth/dto/sign-up.dto';
 import { SubmitTestDto } from './dto/submit-test.dto';
 
 @Injectable()
@@ -90,12 +98,11 @@ export class UsersService {
   /*
     checks and creates an achievement if the user is eligible
     criteria: achieved new highest answer rate (update the old achievement's answer rate if needed)
- */
+  */
   private async checkAndCreateAnsRateAchievement(userId: string) {
-    // TODO: fix
     const progressments = await this.prisma.progresses.findMany({
       where: { userId },
-      select: { },
+      select: { total: true, correct: true, createdAt: true },
     });
 
     // get most recent progressment
@@ -103,7 +110,14 @@ export class UsersService {
 
     const highestAnsRateAchievement =
       await this.prisma.userAchievements.findFirst({
-        where: { userId },
+        where: {
+          userId: userId,
+          achievement: {
+            title: {
+              contains: '정답률', // title이 '정답률'을 포함하는 achievemente 들고 오기
+            }
+          },
+        },
         include: {
           achievement: true,
         },
@@ -114,19 +128,29 @@ export class UsersService {
         },
       });
 
+    // if(highestAnsRateAchievement) {
+    //   console.log(`current highest answer rate achievement: ${highestAnsRateAchievement.achievement.score}`);
+    // }
+
+    // calculate the new answer rate
+    const newAnswerRate = mostRecentProgress.correct / mostRecentProgress.total;
+    // console.log(`New Answer Rate: ${newAnswerRate}`);
+
     // if the user already has an achievement on highest accuracy
     if (highestAnsRateAchievement) {
       // check if the new answer rate is higher than the current 
-      if (newAnswerRate > highestAnsRateAchievement.achievement.level) {
+      if (newAnswerRate > highestAnsRateAchievement.achievement.score) {
+        // console.log("let's update the highest answer rate achievement");
         await this.prisma.achievements.update({
           where: { id: highestAnsRateAchievement.achievement.id },
           data: {
             title: `정답률 ${(newAnswerRate * 100).toFixed(2)}% 달성`,
-            description: `정답률 최고기록 달성! 주어진 문제의 ${(newAnswerRate * 100).toFixed(2)}% 정답을 맞췄어요.`,
-            level: newAnswerRate,
+            score: newAnswerRate,
+            level: await this.getLevelForAnsRateAchievement(newAnswerRate),
           }
         });
-
+        
+        // console.log(`Highest Answer Rate achievement updated for user ${userId} to ${newAnswerRate}`);
         this.logger.log(`Highest Answer Rate achievement updated for user ${userId} to ${newAnswerRate}`);
       }
     }
@@ -135,8 +159,8 @@ export class UsersService {
       const newHighAnsRateAchievement = await this.prisma.achievements.create({
         data: {
           title: `정답률 ${(newAnswerRate * 100).toFixed(2)}% 달성`,
-          description: `정답률 최고기록 달성! 주어진 문제의 ${(newAnswerRate * 100).toFixed(2)}% 정답을 맞췄어요.`,
-          level: newAnswerRate,
+          score: newAnswerRate,
+          level: await this.getLevelForAnsRateAchievement(newAnswerRate),
         }
       });
 
@@ -147,8 +171,23 @@ export class UsersService {
         },
       });
 
+      // console.log(`Highest Answer Rate achievement created for user ${userId} with answer rate ${newAnswerRate}`);
       this.logger.log(`Highest Answer Rate achievement created for user ${userId} with answer rate ${newAnswerRate}`);
     }
+  }
+
+  // logic to determine the level of the achievement based on the answer rate
+  private async getLevelForAnsRateAchievement(ansRate: number) {
+    const levels = [50, 60, 70, 80, 90, 95, 98, 100];
+
+    // return the index of the first level that the answer rate is higher than
+    for (let i = 0; i < levels.length; ++i){
+      if (ansRate < levels[i]) {
+        return i;
+      }
+    }
+
+    return levels.length;
   }
 
   /*
@@ -183,15 +222,17 @@ export class UsersService {
 
       // if the user already has an achievement on distinct days, skip
       if (existingAchievement) {
+        // console.log(`User ${userId} already has an achievement for ${milestone} days`);
         continue;
       }
 
       // create a new achievement
+      // console.log(`Creating Distinct Days achievement for user ${userId} with ${milestone} days`);
       const newAchievement = await this.prisma.achievements.create({
         data: {
           title: `${milestone}일 학습 완료`,
-          description: `${milestone}일 연속 학습을 완료했어요! 정말 대단해요!`,
-          level: milestone,
+          score: milestone,
+          level: milestones.indexOf(milestone),
         }
       });
 
@@ -217,7 +258,7 @@ export class UsersService {
         achievement: {
           select: {
             title: true,
-            description: true,
+            score: true,
             level: true,
           },
         },
@@ -231,8 +272,8 @@ export class UsersService {
         createdAt: ua.createdAt,
       };
     });
-    console.log(achievements);
-    console.log(userAchievements);
+    // console.log(achievements);
+    // console.log(userAchievements);
 
     // const achievementIds = userAchievements.map((ua) => ua.achievementId);
     // const achievements = await this.prisma.achievements.findMany({
