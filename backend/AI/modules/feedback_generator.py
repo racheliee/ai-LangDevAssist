@@ -11,8 +11,6 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 import os
-import base64
-import httpx
 from langchain_core.messages import HumanMessage
 
 openai_api_key = os.getenv("OPENAI_API_KEY").strip("'")

@@ -8,7 +8,6 @@ import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import * as FormData from 'form-data';
 import { PrismaService } from '../prisma/prisma.service';
-import { AxiosResponse } from 'axios';
 
 @Injectable()
 export class ChatService {
@@ -34,10 +33,14 @@ export class ChatService {
       where: { userId: user.id },
     });
 
-    const answerRate = solveHistories.reduce(
+    const correct = solveHistories.reduce(
       (acc, cur) => (cur.isCorrect ? acc + 1 : acc),
       0,
     );
+
+    const total = solveHistories.length;
+
+    const answerRate = total === 0 ? 0 : correct / total;
 
     // check and create achievement
     await this.checkAndCreateAchievement(user.id, answerRate);
@@ -90,14 +93,6 @@ export class ChatService {
     };
   }
 
-  async communicateWithAI(url: string, data: any): Promise<AxiosResponse<any>> {
-    try {
-      return await firstValueFrom(this.httpService.post(url, data));
-    } catch (error) {
-      throw new InternalServerErrorException(error.message);
-    }
-  }
-
   async generateFeedback(
     problemId: string,
     user: any,
@@ -141,6 +136,7 @@ export class ChatService {
         },
       });
 
+      this.checkProgress(user.id, response.data?.data.is_correct);
       return response.data.data;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
@@ -209,5 +205,57 @@ export class ChatService {
         `New achievement created for user ${userId}: ${newAchievement.title}`,
       );
     }
+  }
+
+  private async checkProgress(userId: string, isCorrect: boolean) {
+    const user = await this.prismaService.users.findUnique({
+      where: { id: userId },
+    });
+
+    const prog = await this.prismaService.progresses.findFirst({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!prog) {
+      return;
+    }
+
+    const cur = new Date();
+    // TODO: 오늘 만들어진 progress가 있는지 확인
+    if (
+      prog.createdAt.getDate() === cur.getDate() &&
+      prog.createdAt.getMonth() === cur.getMonth() &&
+      prog.createdAt.getFullYear() === cur.getFullYear()
+    ) {
+      return await this.prismaService.progresses.update({
+        where: { id: prog.id },
+        data: {
+          correct: isCorrect ? prog.correct + 1 : prog.correct,
+          total: prog.total + 1,
+        },
+      });
+    }
+
+    const solveHistories = await this.prismaService.solveHistories.findMany({
+      where: { userId: user.id },
+    });
+
+    const correct = solveHistories.reduce(
+      (acc, cur) => (cur.isCorrect ? acc + 1 : acc),
+      0,
+    );
+
+    const total = solveHistories.length;
+
+    await this.prismaService.progresses.create({
+      data: {
+        userId: user.id,
+        correct,
+        total,
+      },
+    });
+
+    // check and create achievement
   }
 }

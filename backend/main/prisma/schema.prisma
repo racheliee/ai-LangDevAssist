@@ -50,11 +50,6 @@ model TestResults {
   @@map("test_results")
 }
 
-enum TestType {
-  Listening
-  Speaking
-}
-
 model ParentFeedbacks {
   id          String   @id @default(cuid())
   userId      String
@@ -69,9 +64,9 @@ model ParentFeedbacks {
 
 model Progresses {
   id        String   @id @default(cuid())
-  type      TestType
   userId    String
-  progress  Int
+  total     Int
+  correct   Int
   createdAt DateTime @default(now())
 
   // Relationships
