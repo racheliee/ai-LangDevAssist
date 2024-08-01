@@ -94,7 +94,7 @@ def generate_language_diagnosis_question(user_info):
     
     messages=[
             {"role": "system", "content": "You are a friendly and helpful Child Language Development Disorder Therapist."},
-            {"role": "user", "content": prompt}
+            {"role": "user", "content": json_prompt}
         ]
     
     
