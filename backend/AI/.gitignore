@@ -19,3 +19,6 @@ build/
 
 *.env
 logs/
+
+audio/
+image/
