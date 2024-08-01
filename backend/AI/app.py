@@ -32,8 +32,8 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
-@app.route('chat/generate_problem', methods=['POST'])
-def generate_problem():
+@app.route('/chat/generate_problem', methods=['POST'])
+def generate_chat_problem():
     data = request.get_json()
     
     if data is None:
@@ -77,8 +77,8 @@ def generate_problem():
         "data": problem
     })
 
-@app.route('chat/generate_feedback', methods=['POST'])
-def generate_feedback():
+@app.route('/chat/generate_feedback', methods=['POST'])
+def generate_chat_feedback():
     print(request.files)
 
     file = request.files['voice']
@@ -107,6 +107,20 @@ def generate_feedback():
             "feedback": rag_feedback,
             "is_correct": is_correct
         }
+    })
+
+@app.route('/cartoon/generate_problem', methods=['POST'])
+def generate_cartoon_problem():
+    return jsonify({
+        "statusCode": 200,
+        "data": "Cartoon Problem"
+    })
+
+@app.route('/cartoon/generate_feedback', methods=['POST'])
+def generate_cartoon_problem():
+    return jsonify({
+        "statusCode": 200,
+        "data": "Cartoon Feedback"
     })
 
 if __name__ == '__main__':
