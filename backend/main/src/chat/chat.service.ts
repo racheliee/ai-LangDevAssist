@@ -142,4 +142,53 @@ export class ChatService {
       throw new InternalServerErrorException(error.message);
     }
   }
+
+  private async checkProgress(userId: string, isCorrect: boolean) {
+    const user = await this.prismaService.users.findUnique({
+      where: { id: userId },
+    });
+
+    const prog = await this.prismaService.progresses.findFirst({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!prog) {
+      return;
+    }
+
+    const cur = new Date();
+    if (
+      prog.createdAt.getDate() === cur.getDate() &&
+      prog.createdAt.getMonth() === cur.getMonth() &&
+      prog.createdAt.getFullYear() === cur.getFullYear()
+    ) {
+      return await this.prismaService.progresses.update({
+        where: { id: prog.id },
+        data: {
+          correct: isCorrect ? prog.correct + 1 : prog.correct,
+          total: prog.total + 1,
+        },
+      });
+    }
+
+    const solveHistories = await this.prismaService.solveHistories.findMany({
+      where: { userId: user.id },
+    });
+
+    const correct = solveHistories.reduce(
+      (acc, cur) => (cur.isCorrect ? acc + 1 : acc),
+      0,
+    );
+
+    const total = solveHistories.length;
+
+    await this.prismaService.progresses.create({
+      data: {
+        userId: user.id,
+        correct,
+        total,
+      },
+    });
+  }
 }
