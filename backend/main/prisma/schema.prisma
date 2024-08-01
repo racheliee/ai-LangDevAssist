@@ -29,7 +29,6 @@ model Users {
 
   // Relationships
   testResults     TestResults[]
-  feedbacks       Feedbacks[]
   progresses      Progresses[]
   achievements    UserAchievements[]
   problems        Problems[]
@@ -52,18 +51,6 @@ model TestResults {
 enum TestType {
   Listening
   Speaking
-}
-
-model Feedbacks {
-  id          String   @id @default(cuid())
-  userId      String
-  content     String
-  createdAt   DateTime @default(now())
-
-  // Relationships
-  user        Users    @relation(fields: [userId], references: [id])
-
-  @@map("feedbacks")
 }
 
 model Progresses {
