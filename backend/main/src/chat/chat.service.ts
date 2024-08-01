@@ -136,6 +136,8 @@ export class ChatService {
         },
       });
 
+      this.checkProgress(user.id, response.data?.data.is_correct);
+
       return response.data.data;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
