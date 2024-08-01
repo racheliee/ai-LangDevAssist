@@ -160,11 +160,7 @@ export class ChatService {
         },
       });
     
-      console.log('highestAchievement:', highestAchievement);
-      console.log('newAnswerRate:', newAnswerRate);
-    
       if (highestAchievement && newAnswerRate > highestAchievement.achievement.level) {
-        console.log('Deleting old achievement...');
         await this.prismaService.userAchievements.deleteMany({
           where: {
             userId,
@@ -179,7 +175,6 @@ export class ChatService {
       }
     
       if (!highestAchievement || newAnswerRate > highestAchievement.achievement.level) {
-        console.log('Creating new achievement...');
         const newAchievement = await this.prismaService.achievements.create({
           data: {
             title: 'Highest Answer Rate',
