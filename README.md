@@ -1,3 +1,5 @@
+> ‼️ This repository was archived and moved to [농부들-새싹해커톤](https://github.com/farmer-talk/sesac-hackathon/) 
+
 # 떠들자 
 언어발달장애를 지닌 아동을 위한 AI-언어발달지도사
 
