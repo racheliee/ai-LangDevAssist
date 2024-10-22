@@ -1,7 +1,10 @@
-> ‼️ This repository was archived and moved to [농부들-새싹해커톤](https://github.com/farmer-talk/sesac-hackathon/) 
+> ‼️ This repository was archived and moved to [농부들-새싹해커톤](https://github.com/archi-corp/sesac-hackathon) 
 
 # 떠들자 
+> Team: 농부들
+
 언어발달장애를 지닌 아동을 위한 AI-언어발달지도사
+
 
 ## Introduction
 이 프로젝트는 언어발달장애를 가진 아동들을 위한 AI 기반 언어 치료 서비스를 제공하는 것을 목표로 합니다. 최신 AI 기술을 활용하여 언어 지연 및 장애의 조기 진단과 치료를 지원합니다.
